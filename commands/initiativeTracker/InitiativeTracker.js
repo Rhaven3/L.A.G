@@ -63,7 +63,7 @@ module.exports = {
 
 		NextCollector.on('collect', async () => {
 			nextTurn();
-			calculateTurnOrder(actualTurn, turnOrderMessage, turnNumber);
+			calculateTurnOrder();
 			await interaction.editReply({
 				content: turnOrderMessage,
 				components: [row],
@@ -77,26 +77,24 @@ module.exports = {
 			console.log(`Collecteur terminé. Raisons: ${reason}`);
 		});
 
+		function nextTurn() {
+			if (actualTurn == players.length) {
+				turnNumber++;
+				actualTurn = 0;
+			} else {
+				actualTurn++;
+			}
+		}
+
+		function calculateTurnOrder() {
+			turnOrderMessage = `__Tour ${turnNumber}:__\n`;
+			for (const player of players) {
+				(players.indexOf(player) == actualTurn) ?
+					turnOrderMessage += ':star: ' :
+					turnOrderMessage += '- ' ;
+				turnOrderMessage += `${player.name} \`\`${player.initiative}\`\` \n`;
+			}
+		}
 
 	},
 };
-
-function nextTurn() {
-	if (actualTurn == players.length) {
-		turnNumber++;
-		actualTurn = 0;
-	} else {
-		actualTurn++;
-	}
-}
-
-function calculateTurnOrder() {
-	turnOrderMessage = `__Tour ${turnNumber}:__\n`;
-	for (const player in players) {
-		(players.indexOf(player) == actualTurn) ?
-			turnOrderMessage += ':star: ' :
-			turnOrderMessage += '- ' ;
-
-		turnOrderMessage += `${player.name} \`\`${player.initiative}\`\``;
-	}
-}
