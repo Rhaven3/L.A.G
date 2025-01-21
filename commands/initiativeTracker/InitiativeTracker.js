@@ -5,11 +5,11 @@ module.exports = {
 		.setName('initiative')
 		.setDescription('Créer un trackeur d\'initative'),
 	async execute(interaction) {
-		await interaction.reply(`
-			\`\`\`Discord.JS\n
-			En Cours de construction...\n
-			\`\`\`
-			`);
+		// await interaction.reply(`
+		// 	\`\`\`Discord.JS\n
+		// 	En Cours de construction...\n
+		// 	\`\`\`
+		// 	`);
 		// Recup des fiches
 		/* Fiche Test, Kamui (https://docs.google.com/spreadsheets/d/1prz0Z_pkGGR73TxwDsROvSVeEVoHJwfKa1TEDNQQ_fE/edit?gid=0#gid=0)
 		* - Initiative
@@ -50,18 +50,21 @@ module.exports = {
 
 
 		// Affichage du Turn Order + Button
-		await interaction.editReply({
+		const response = await interaction.reply({
 			content: turnOrderMessage,
 			components: [row],
 			withResponse: true,
 		});
 
-		const NextCollector = Response.resource.message.createMessageComponentcollector({
+		// Button Next
+		const NextCollector = response.resource.message.createMessageComponentCollector({
 			filter: button => button.customId === 'nextTurn',
 			time: 3_600_000,
 		});
 
-		NextCollector.on('collect', async () => {
+		NextCollector.on('collect', async (button) => {
+			await button.deferUpdate();
+
 			nextTurn();
 			calculateTurnOrder();
 			await interaction.editReply({
@@ -78,11 +81,44 @@ module.exports = {
 		});
 
 		function nextTurn() {
-			if (actualTurn == players.length) {
+			if (actualTurn == players.length - 1) {
 				turnNumber++;
 				actualTurn = 0;
 			} else {
 				actualTurn++;
+			}
+		}
+
+		// Button Prec
+		const PrecCollector = response.resource.message.createMessageComponentCollector({
+			filter: button => button.customId === 'precTurn',
+			time: 3_600_000,
+		});
+
+		PrecCollector.on('collect', async (button) => {
+			await button.deferUpdate();
+
+			precTurn();
+			calculateTurnOrder();
+			await interaction.editReply({
+				content: turnOrderMessage,
+				components: [row],
+				withResponse: true,
+			});
+		});
+		PrecCollector.on('end', (collected, reason) => {
+			if (reason === 'time') {
+				interaction.followup({ content: 'Le temps est écoulé, plus de réponses.', components: [] });
+			}
+			console.log(`Collecteur terminé. Raisons: ${reason}`);
+		});
+
+		function precTurn() {
+			if (actualTurn == 0) {
+				turnNumber--;
+				actualTurn = players.length - 1;
+			} else {
+				actualTurn--;
 			}
 		}
 
