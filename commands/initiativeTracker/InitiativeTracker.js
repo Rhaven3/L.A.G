@@ -5,11 +5,6 @@ module.exports = {
 		.setName('initiative')
 		.setDescription('Créer un trackeur d\'initative'),
 	async execute(interaction) {
-		// await interaction.reply(`
-		// 	\`\`\`Discord.JS\n
-		// 	En Cours de construction...\n
-		// 	\`\`\`
-		// 	`);
 		// Recup des fiches
 		/* Fiche Test, Kamui (https://docs.google.com/spreadsheets/d/1prz0Z_pkGGR73TxwDsROvSVeEVoHJwfKa1TEDNQQ_fE/edit?gid=0#gid=0)
 		* - Initiative
@@ -19,17 +14,18 @@ module.exports = {
 		* - HP
 		* : ? Calculer dans une autre fiche, à réfléchir
 		*/
-
-		// Calcul Turn Order
+		// *************  Players Exemple (API Sheet pas encore fonctionnell)
+		// ****************************************************************
 		const players = [
-			{ initiative: 14, name: 'Player 1' },
-			{ initiative: 7, name: 'Player 2' },
-			{ initiative: -41, name: 'Player 3' },
-			{ initiative: 32, name: 'Player 4' },
+			{ initiative: 14, name: 'Player 1', passTurnFlag: false },
+			{ initiative: 7, name: 'Player 2', passTurnFlag: false },
+			{ initiative: -41, name: 'Player 3', passTurnFlag: false },
+			{ initiative: 32, name: 'Player 4', passTurnFlag: false },
 		];
 		players.sort((a, b) => b.initiative - a.initiative);
-
-		let actualTurn = 0;
+		// ****************************************************************
+		const buttonTimeInteraction = 3_600_000;
+		let currentTurn = 0;
 		let turnOrderMessage = '';
 		let turnNumber = 1;
 		calculateTurnOrder();
@@ -38,15 +34,20 @@ module.exports = {
 		const nextTurnButton = new ButtonBuilder()
 			.setCustomId('nextTurn')
 			.setLabel('Next')
-			.setStyle(ButtonStyle.Primary);
+			.setStyle(ButtonStyle.Success);
 
 		const precTurnButton = new ButtonBuilder()
 			.setCustomId('precTurn')
 			.setLabel('Prec')
 			.setStyle(ButtonStyle.Secondary);
 
+		const passTurnButton = new ButtonBuilder()
+			.setCustomId('passTurn')
+			.setLabel('Pass')
+			.setStyle(ButtonStyle.Primary);
+
 		const row = new ActionRowBuilder()
-			.addComponents(precTurnButton, nextTurnButton);
+			.addComponents(precTurnButton, passTurnButton, nextTurnButton);
 
 
 		// Affichage du Turn Order + Button
@@ -56,10 +57,11 @@ module.exports = {
 			withResponse: true,
 		});
 
+
 		// Button Next
 		const NextCollector = response.resource.message.createMessageComponentCollector({
 			filter: button => button.customId === 'nextTurn',
-			time: 3_600_000,
+			time: buttonTimeInteraction,
 		});
 
 		NextCollector.on('collect', async (button) => {
@@ -77,22 +79,25 @@ module.exports = {
 			if (reason === 'time') {
 				interaction.followup({ content: 'Le temps est écoulé, plus de réponses.', components: [] });
 			}
-			console.log(`Collecteur terminé. Raisons: ${reason}`);
+			console.log(`NextCollecteur terminé. Raisons: ${reason}`);
 		});
 
 		function nextTurn() {
-			if (actualTurn == players.length - 1) {
+			
+
+			if (currentTurn == players.length - 1) {
 				turnNumber++;
-				actualTurn = 0;
+				currentTurn = 0;
 			} else {
-				actualTurn++;
+				currentTurn++;
 			}
 		}
+
 
 		// Button Prec
 		const PrecCollector = response.resource.message.createMessageComponentCollector({
 			filter: button => button.customId === 'precTurn',
-			time: 3_600_000,
+			time: buttonTimeInteraction,
 		});
 
 		PrecCollector.on('collect', async (button) => {
@@ -107,30 +112,69 @@ module.exports = {
 			});
 		});
 		PrecCollector.on('end', (collected, reason) => {
-			if (reason === 'time') {
-				interaction.followup({ content: 'Le temps est écoulé, plus de réponses.', components: [] });
-			}
-			console.log(`Collecteur terminé. Raisons: ${reason}`);
+			console.log(`PrecCollecteur terminé. Raisons: ${reason}`);
 		});
 
 		function precTurn() {
-			if (actualTurn == 0) {
+			if (currentTurn == 0) {
 				turnNumber--;
-				actualTurn = players.length - 1;
+				currentTurn = players.length - 1;
 			} else {
-				actualTurn--;
+				currentTurn--;
 			}
 		}
+
+
+		// Button Pass
+		const PassCollector = response.resource.message.createMessageComponentCollector({
+			filter: button => button.customId === 'passTurn',
+			time: buttonTimeInteraction,
+		});
+
+		PassCollector.on('collect', async (button) => {
+			await button.deferUpdate();
+
+			passTurn();
+			calculateTurnOrder();
+			await interaction.editReply({
+				content: turnOrderMessage,
+				components: [row],
+				withResponse: true,
+			});
+		});
+		PassCollector.on('end', (collected, reason) => {
+			console.log(`PassCollecteur terminé. Raisons: ${reason}`);
+		});
+
+		function passTurn() {
+			for (const player of players) {
+				if (players.indexOf(player) == currentTurn) player.passTurnFlag = true;
+			}
+			nextTurn();
+		}
+
 
 		function calculateTurnOrder() {
 			turnOrderMessage = `__Tour ${turnNumber}:__\n`;
 			for (const player of players) {
-				(players.indexOf(player) == actualTurn) ?
+				(players.indexOf(player) == currentTurn) ?
 					turnOrderMessage += ':star: ' :
+					(player.passTurnFlag) ?
+						turnOrderMessage += ':diamond_'
 					turnOrderMessage += '- ' ;
 				turnOrderMessage += `${player.name} \`\`${player.initiative}\`\` \n`;
 			}
 		}
+
+		/*
+		function getCurrentPlayer(playerList) {
+			for (const player of playerList) {
+				if (playerList.indexOf(player) == currentTurn) {
+					return player;
+				} else {return null;}
+			}
+		}
+		*/
 
 	},
 };
