@@ -17,10 +17,10 @@ module.exports = {
 		// *************  Players Exemple (API Sheet pas encore fonctionnell)
 		// ****************************************************************
 		const players = [
-			{ initiative: 14, name: 'Player 1', passTurnFlag: false },
-			{ initiative: 7, name: 'Player 2', passTurnFlag: false },
-			{ initiative: -41, name: 'Player 3', passTurnFlag: false },
-			{ initiative: 32, name: 'Player 4', passTurnFlag: false },
+			{ initiative: 14, name: 'Player 1', passTurnFlag: false, passTurnNumber: 0 },
+			{ initiative: 7, name: 'Player 2', passTurnFlag: false, passTurnNumber: 0 },
+			{ initiative: -41, name: 'Player 3', passTurnFlag: false, passTurnNumber: 0 },
+			{ initiative: 32, name: 'Player 4', passTurnFlag: false, passTurnNumber: 0 },
 		];
 		players.sort((a, b) => b.initiative - a.initiative);
 		// ****************************************************************
@@ -83,7 +83,6 @@ module.exports = {
 		});
 
 		function nextTurn() {
-			
 
 			if (currentTurn == players.length - 1) {
 				turnNumber++;
@@ -148,7 +147,10 @@ module.exports = {
 
 		function passTurn() {
 			for (const player of players) {
-				if (players.indexOf(player) == currentTurn) player.passTurnFlag = true;
+				if (players.indexOf(player) == currentTurn) {
+					player.passTurnFlag = true;
+					player.passTurnNumber = turnNumber;
+				}
 			}
 			nextTurn();
 		}
@@ -157,11 +159,16 @@ module.exports = {
 		function calculateTurnOrder() {
 			turnOrderMessage = `__Tour ${turnNumber}:__\n`;
 			for (const player of players) {
-				(players.indexOf(player) == currentTurn) ?
-					turnOrderMessage += ':star: ' :
-					(player.passTurnFlag) ?
-						turnOrderMessage += ':diamond_'
+
+				if (players.indexOf(player) == currentTurn) {
+					turnOrderMessage += ':star: ';
+					if (player.passTurnNumber + 1 == turnNumber && player.passTurnFlag) player.passTurnFlag = false;
+
+				} else if (player.passTurnFlag) {
+					turnOrderMessage += ':diamond_shape_with_a_dot_inside: ';
+				} else {
 					turnOrderMessage += '- ' ;
+				}
 				turnOrderMessage += `${player.name} \`\`${player.initiative}\`\` \n`;
 			}
 		}
