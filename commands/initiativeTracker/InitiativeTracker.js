@@ -1,33 +1,47 @@
 const { SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const { google } = require('googleapis');
 
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('initiative')
-		.setDescription('Créer un trackeur d\'initative'),
+		.setDescription('Créer un trackeur d\'initative')
+		.addStringOption(option =>
+			option.setName('idsheets')
+				.setDescription('ajouté l\'id des fiches que vous souhaité utilisé, séparé d\'une virgule ')
+				.setRequired(true),
+		),
 	async execute(interaction) {
-		// Recup des fiches
-		/* Fiche Test, Kamui (https://docs.google.com/spreadsheets/d/1prz0Z_pkGGR73TxwDsROvSVeEVoHJwfKa1TEDNQQ_fE/edit?gid=0#gid=0)
-		* - Initiative
-		* : F15
-		* - Nom
-		* : A2 & B2
-		* - HP
-		* : ? Calculer dans une autre fiche, à réfléchir
-		*/
+		await interaction.deferReply();
+
 		// *************  Players Exemple (API Sheet pas encore fonctionnell)
 		// ****************************************************************
+		/*
 		const players = [
-			{ initiative: 14, name: 'Player 1', passTurnFlag: false, passTurnNumber: 0 },
-			{ initiative: 7, name: 'Player 2', passTurnFlag: false, passTurnNumber: 0 },
-			{ initiative: -41, name: 'Player 3', passTurnFlag: false, passTurnNumber: 0 },
-			{ initiative: 32, name: 'Player 4', passTurnFlag: false, passTurnNumber: 0 },
+			{ initiative: 14, name: 'Player 1', healthState: '', passTurnFlag: false, passTurnNumber: 0 },
+			{ initiative: 7, name: 'Player 2', healthState: '', passTurnFlag: false, passTurnNumber: 0 },
+			{ initiative: -41, name: 'Player 3', healthState: '', passTurnFlag: false, passTurnNumber: 0 },
+			{ initiative: 32, name: 'Player 4', healthState: '', passTurnFlag: false, passTurnNumber: 0 },
 		];
 		players.sort((a, b) => b.initiative - a.initiative);
+		*/
 		// ****************************************************************
 		const buttonTimeInteraction = 3_600_000;
 		let currentTurn = 0;
 		let turnOrderMessage = '';
 		let turnNumber = 1;
+
+		// API SHEET
+		const auth = new google.auth.GoogleAuth({
+			keyFile: 'project-it-credentials.json',
+			scopes: 'https://www.googleapis.com/auth/spreadsheets',
+		});
+		const client = await auth.getClient();
+		// Instance sheet API
+		const googleSheets = google.sheets({ version: 'v4', auth: client });
+
+		// récup fiche
+		const players = await retrievePlayerData();
+		players.sort((a, b) => b.initiative - a.initiative);
 		calculateTurnOrder();
 
 		// action rows
@@ -51,7 +65,7 @@ module.exports = {
 
 
 		// Affichage du Turn Order + Button
-		const response = await interaction.reply({
+		const response = await interaction.editReply({
 			content: turnOrderMessage,
 			components: [row],
 			withResponse: true,
@@ -59,7 +73,7 @@ module.exports = {
 
 
 		// Button Next
-		const NextCollector = response.resource.message.createMessageComponentCollector({
+		const NextCollector = response.createMessageComponentCollector({
 			filter: button => button.customId === 'nextTurn',
 			time: buttonTimeInteraction,
 		});
@@ -77,7 +91,7 @@ module.exports = {
 		});
 		NextCollector.on('end', (collected, reason) => {
 			if (reason === 'time') {
-				interaction.followup({ content: 'Le temps est écoulé, plus de réponses.', components: [] });
+				interaction.followUp({ content: 'Le temps est écoulé, plus de réponses.', components: [] });
 			}
 			console.log(`NextCollecteur terminé. Raisons: ${reason}`);
 		});
@@ -92,9 +106,8 @@ module.exports = {
 			}
 		}
 
-
 		// Button Prec
-		const PrecCollector = response.resource.message.createMessageComponentCollector({
+		const PrecCollector = response.createMessageComponentCollector({
 			filter: button => button.customId === 'precTurn',
 			time: buttonTimeInteraction,
 		});
@@ -125,7 +138,7 @@ module.exports = {
 
 
 		// Button Pass
-		const PassCollector = response.resource.message.createMessageComponentCollector({
+		const PassCollector = response.createMessageComponentCollector({
 			filter: button => button.customId === 'passTurn',
 			time: buttonTimeInteraction,
 		});
@@ -155,33 +168,52 @@ module.exports = {
 			nextTurn();
 		}
 
+		async function retrievePlayerData() {
+			let players = [];
+			const playersId = interaction.options.getString('idsheets').split(',');
+
+			for (const id of playersId) {
+			  const getInit = await googleSheets.spreadsheets.values.get({
+					auth,
+					spreadsheetId: id,
+					range: 'Etat!P17',
+			  });
+			  const getName = await googleSheets.spreadsheets.values.get({
+					auth,
+					spreadsheetId: id,
+					range: 'Etat!A1',
+			  });
+			  const getHealth = await googleSheets.spreadsheets.values.get({
+					auth,
+					spreadsheetId: id,
+					range: 'Etat!A3',
+			  });
+
+			  players.push({
+					initiative: getInit.data.values[0][0],
+					name: getName.data.values[0][0],
+					healthState: getHealth.data.values[0][0],
+			  });
+			}
+			return players;
+		  }
 
 		function calculateTurnOrder() {
 			turnOrderMessage = `__Tour ${turnNumber}:__\n`;
 			for (const player of players) {
-
 				if (players.indexOf(player) == currentTurn) {
 					turnOrderMessage += ':star: ';
 					if (player.passTurnNumber + 1 == turnNumber && player.passTurnFlag) player.passTurnFlag = false;
 
 				} else if (player.passTurnFlag) {
 					turnOrderMessage += ':diamond_shape_with_a_dot_inside: ';
+
 				} else {
 					turnOrderMessage += '- ' ;
 				}
-				turnOrderMessage += `${player.name} \`\`${player.initiative}\`\` \n`;
+				turnOrderMessage += `**${player.name}** \`\`[ ${player.initiative} ]\`\` *${player.healthState}* \n`;
 			}
 		}
-
-		/*
-		function getCurrentPlayer(playerList) {
-			for (const player of playerList) {
-				if (playerList.indexOf(player) == currentTurn) {
-					return player;
-				} else {return null;}
-			}
-		}
-		*/
 
 	},
 };

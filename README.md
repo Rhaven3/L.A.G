@@ -5,3 +5,4 @@
 [Doc Rules ESLint](https://eslint.org/docs/latest/rules/)
 [Discord.JS Guide](https://discordjs.guide/)
 [Doc Discord.JS](https://discord.js.org/docs/packages/discord.js/14.17.3)
+[Vidéo Google Sheet API with JS](https://youtu.be/PFJNJQCU_lo)
