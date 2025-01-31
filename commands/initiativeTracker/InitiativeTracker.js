@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder, StringSelectMenuOptionBuilder } = require('discord.js');
+const { SlashCommandBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder, StringSelectMenuOptionBuilder } = require('discord.js');
 const { google } = require('googleapis');
 
 module.exports = {
@@ -8,12 +8,14 @@ module.exports = {
 		.addStringOption(option =>
 			option.setName('idsheets')
 				.setDescription('ajouté l\'id des fiches que vous souhaité utilisé, séparé d\'une virgule ')
+				.setPlaceholder('idSheet1' + idSheetSpliter + 'idSheet2' + idSheetSpliter + '...')
 				.setRequired(true),
 		),
 	async execute(interaction) {
 		await interaction.deferReply();
 
 		const buttonTimeInteraction = 3_600_000;
+		const idSheetSpliter = ', ';
 		let currentTurn = 0;
 		let turnOrderMessage = '';
 		let turnNumber = 1;
@@ -204,7 +206,7 @@ module.exports = {
 
 		async function retrievePlayerData() {
 			const playersPJ = [];
-			const playersId = interaction.options.getString('idsheets').split(',');
+			const playersId = interaction.options.getString('idsheets').split(idSheetSpliter);
 
 			for (const id of playersId) {
 			  const getInit = await googleSheets.spreadsheets.values.get({
@@ -230,7 +232,43 @@ module.exports = {
 			  });
 			}
 			return playersPJ;
-		  }
+		}
+
+
+		// Add PJ Button
+		const addPJCollector = response.createMessageComponentCollector({
+			filter: button => button.customId === 'passTurn',
+			time: buttonTimeInteraction,
+		});
+
+		addPJCollector.on('collect', async (button) => {
+			await interaction.shoModal(addPJModal);
+		});
+		addPJCollector.on('end', (collected, reason) => {
+			console.log(`addPJCollecteur terminé. Raisons: ${reason}`);
+		});
+
+		/*
+		* A MODIFIER !!!
+		* Les modal sont une interaction et un event appart entière !
+		* à voir
+		*/
+		// Modal Response
+		const addPJModal = new ModalBuilder()
+			.setCustomId('addPJModal')
+			.setTitle('Ajouter un PJ');
+
+		// text input
+		idPJInput = new TextInputBuilder()
+			.setCustomId('idPJInput')
+			.setLabel('L\'id des fiches de personnages que vous voulez rajouter [, ]')
+			.setStyle(TextInputStyle.Paragraph)
+			.setPlaceholder('idSheet1' + idSheetSpliter + 'idSheet2' + idSheetSpliter + '...')
+			.setRequired(true);
+
+		const actionRowModal = ActionRowBuilder().addComponents(idPJInput);
+		addPJModal.addComponents(actionRowModal);
+
 
 		function calculateTurnOrder() {
 			turnOrderMessage = `## __Tour ${turnNumber} :__\n`;
