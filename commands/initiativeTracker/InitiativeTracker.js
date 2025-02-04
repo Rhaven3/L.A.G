@@ -1,6 +1,9 @@
 const { SlashCommandBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder, StringSelectMenuOptionBuilder } = require('discord.js');
 const { google } = require('googleapis');
 
+const buttonTimeInteraction = 3_600_000;
+const idSheetSpliter = ', ';
+
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('initiative')
@@ -8,14 +11,10 @@ module.exports = {
 		.addStringOption(option =>
 			option.setName('idsheets')
 				.setDescription('ajouté l\'id des fiches que vous souhaité utilisé, séparé d\'une virgule ')
-				.setPlaceholder('idSheet1' + idSheetSpliter + 'idSheet2' + idSheetSpliter + '...')
-				.setRequired(true),
 		),
 	async execute(interaction) {
 		await interaction.deferReply();
 
-		const buttonTimeInteraction = 3_600_000;
-		const idSheetSpliter = ', ';
 		let currentTurn = 0;
 		let turnOrderMessage = '';
 		let turnNumber = 1;
@@ -237,37 +236,68 @@ module.exports = {
 
 		// Add PJ Button
 		const addPJCollector = response.createMessageComponentCollector({
-			filter: button => button.customId === 'passTurn',
+			filter: button => button.customId === 'addPJ',
 			time: buttonTimeInteraction,
 		});
 
 		addPJCollector.on('collect', async (button) => {
-			await interaction.shoModal(addPJModal);
+			const addPJModal = new ModalBuilder()
+				.setCustomId('addPJModal')
+				.setTitle('Ajouter un PJ');
+
+			// text input
+			PJInput = new TextInputBuilder()
+				.setCustomId('idPJInput')
+				.setLabel('L\'id des fiches de personnages [' + idSheetSpliter + ']')
+				.setStyle(TextInputStyle.Paragraph)
+				.setPlaceholder('idSheet1' + idSheetSpliter + 'idSheet2' + idSheetSpliter + '...')
+				.setRequired(true);
+
+			const actionRowModal = new ActionRowBuilder().addComponents(PJInput);
+			addPJModal.addComponents(actionRowModal);
+
+			await button.showModal(addPJModal);
 		});
 		addPJCollector.on('end', (collected, reason) => {
 			console.log(`addPJCollecteur terminé. Raisons: ${reason}`);
 		});
 
-		/*
-		* A MODIFIER !!!
-		* Les modal sont une interaction et un event appart entière !
-		* à voir
-		*/
-		// Modal Response
-		const addPJModal = new ModalBuilder()
-			.setCustomId('addPJModal')
-			.setTitle('Ajouter un PJ');
 
-		// text input
-		idPJInput = new TextInputBuilder()
-			.setCustomId('idPJInput')
-			.setLabel('L\'id des fiches de personnages que vous voulez rajouter [, ]')
-			.setStyle(TextInputStyle.Paragraph)
-			.setPlaceholder('idSheet1' + idSheetSpliter + 'idSheet2' + idSheetSpliter + '...')
-			.setRequired(true);
+		// Add PJ Button
+		const addPNJCollector = response.createMessageComponentCollector({
+			filter: button => button.customId === 'addPNJ',
+			time: buttonTimeInteraction,
+		});
 
-		const actionRowModal = ActionRowBuilder().addComponents(idPJInput);
-		addPJModal.addComponents(actionRowModal);
+		addPNJCollector.on('collect', async (button) => {
+			const addPNJModal = new ModalBuilder()
+				.setCustomId('addPNJModal')
+				.setTitle('Ajouter un PNJ');
+
+			// text input
+			PNJNameInput = new TextInputBuilder()
+				.setCustomId('idPNJNameInput')
+				.setLabel('Nom du PNJ')
+				.setStyle(TextInputStyle.Short)
+				.setPlaceholder('Bob')
+				.setRequired(true);
+
+			PNJInitInput = new TextInputBuilder()
+				.setCustomId('idPNJInitInput')
+				.setLabel('Son Initiative')
+				.setStyle(TextInputStyle.Short)
+				.setPlaceholder('69')
+				.setRequired(true);
+
+			const actionRowModal = new ActionRowBuilder().addComponents(PNJNameInput);
+			const actionRowModal1 = new ActionRowBuilder().addComponents(PNJInitInput);
+			addPNJModal.addComponents(actionRowModal, actionRowModal1);
+
+			await button.showModal(addPNJModal);
+		});
+		addPNJCollector.on('end', (collected, reason) => {
+			console.log(`addPJCollecteur terminé. Raisons: ${reason}`);
+		});
 
 
 		function calculateTurnOrder() {
