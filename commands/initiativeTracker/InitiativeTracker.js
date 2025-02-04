@@ -1,7 +1,8 @@
 const { SlashCommandBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder, StringSelectMenuOptionBuilder } = require('discord.js');
 const { google } = require('googleapis');
 
-const buttonTimeInteraction = 3_600_000;
+const buttonTime = 3_600_000;
+const modalTime = 3_600_00;
 const idSheetSpliter = ', ';
 
 module.exports = {
@@ -110,7 +111,7 @@ module.exports = {
 		// Button Next
 		const NextCollector = response.createMessageComponentCollector({
 			filter: button => button.customId === 'nextTurn',
-			time: buttonTimeInteraction,
+			time: buttonTime,
 		});
 
 		NextCollector.on('collect', async (button) => {
@@ -144,7 +145,7 @@ module.exports = {
 		// Button Prec
 		const PrecCollector = response.createMessageComponentCollector({
 			filter: button => button.customId === 'precTurn',
-			time: buttonTimeInteraction,
+			time: buttonTime,
 		});
 
 		PrecCollector.on('collect', async (button) => {
@@ -175,7 +176,7 @@ module.exports = {
 		// Button Pass
 		const PassCollector = response.createMessageComponentCollector({
 			filter: button => button.customId === 'passTurn',
-			time: buttonTimeInteraction,
+			time: buttonTime,
 		});
 
 		PassCollector.on('collect', async (button) => {
@@ -237,7 +238,7 @@ module.exports = {
 		// Add PJ Button
 		const addPJCollector = response.createMessageComponentCollector({
 			filter: button => button.customId === 'addPJ',
-			time: buttonTimeInteraction,
+			time: buttonTime,
 		});
 
 		addPJCollector.on('collect', async (button) => {
@@ -264,9 +265,11 @@ module.exports = {
 
 
 		// Add PJ Button
+
+
 		const addPNJCollector = response.createMessageComponentCollector({
 			filter: button => button.customId === 'addPNJ',
-			time: buttonTimeInteraction,
+			time: buttonTime,
 		});
 
 		addPNJCollector.on('collect', async (button) => {
@@ -293,12 +296,30 @@ module.exports = {
 			const actionRowModal1 = new ActionRowBuilder().addComponents(PNJInitInput);
 			addPNJModal.addComponents(actionRowModal, actionRowModal1);
 
-			await button.showModal(addPNJModal);
+			const modalPNJInteraction = await button.showModal(addPNJModal);
+
 		});
 		addPNJCollector.on('end', (collected, reason) => {
-			console.log(`addPJCollecteur terminé. Raisons: ${reason}`);
+			console.log(`addPNJCollecteur terminé. Raisons: ${reason}`);
 		});
 
+		// Modal Collector
+		const modalAddPNJCollector = modalPNJInteraction.awaitModalSubmit({
+			filter: modal => modal.customId == 'addPNJModal',
+			time: modalTime,
+		})
+
+		modalAddPNJCollector.on('collect', async (modal) => {
+			modal.deferUpdate();
+			const pnjData = {
+				name: modal.fields.getTextInputValue('idPNJNameInput'),
+				initiative: modal.fields.getTextInputValue('idPNJInitInput'),
+			}
+			console.log(pnjData);
+		})
+		modalAddPNJCollector.on('end', (collected, reason) => {
+			console.log(`modalAddPNJCollecteur terminé. Raisons: ${reason}`);
+		});
 
 		function calculateTurnOrder() {
 			turnOrderMessage = `## __Tour ${turnNumber} :__\n`;
