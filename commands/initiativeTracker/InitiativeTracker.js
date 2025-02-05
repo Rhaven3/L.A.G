@@ -296,30 +296,37 @@ module.exports = {
 			const actionRowModal1 = new ActionRowBuilder().addComponents(PNJInitInput);
 			addPNJModal.addComponents(actionRowModal, actionRowModal1);
 
-			const modalPNJInteraction = await button.showModal(addPNJModal);
+			await button.showModal(addPNJModal);
 
+			await button.awaitModalSubmit({
+				filter: (interactionModal) => interactionModal.customId === 'addPNJModal',
+				time: modalTime,
+			})
+				.then(async (interactionModal) => {
+					console.log(`${interactionModal.customId} was submitted!
+						initiative: ${interactionModal.fields.getTextInputValue('idPNJInitInput')}
+						name: ${interactionModal.fields.getTextInputValue('idPNJNameInput')}`);
+
+					players.push({
+						initiative: interactionModal.fields.getTextInputValue('idPNJInitInput'),
+						name: interactionModal.fields.getTextInputValue('idPNJNameInput'),
+						healthState: '<:pnj_emoji:1336728073802092637>',
+					});
+					players.sort((a, b) => b.initiative - a.initiative);
+					calculateTurnOrder();
+					await interactionModal.deferUpdate();
+					await interaction.editReply({
+						content: turnOrderMessage,
+						components: actionRowsMessageComponents,
+						withResponse: true,
+					});
+				})
+				.catch(err => console.log('no modal submit interaction was collected \n erreur: ' + err));
 		});
 		addPNJCollector.on('end', (collected, reason) => {
 			console.log(`addPNJCollecteur terminé. Raisons: ${reason}`);
 		});
 
-		// Modal Collector
-		const modalAddPNJCollector = modalPNJInteraction.awaitModalSubmit({
-			filter: modal => modal.customId == 'addPNJModal',
-			time: modalTime,
-		})
-
-		modalAddPNJCollector.on('collect', async (modal) => {
-			modal.deferUpdate();
-			const pnjData = {
-				name: modal.fields.getTextInputValue('idPNJNameInput'),
-				initiative: modal.fields.getTextInputValue('idPNJInitInput'),
-			}
-			console.log(pnjData);
-		})
-		modalAddPNJCollector.on('end', (collected, reason) => {
-			console.log(`modalAddPNJCollecteur terminé. Raisons: ${reason}`);
-		});
 
 		function calculateTurnOrder() {
 			turnOrderMessage = `## __Tour ${turnNumber} :__\n`;
