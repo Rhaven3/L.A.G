@@ -71,7 +71,7 @@ module.exports = {
 		// action rows Button Select
 		const addStateButton = new ButtonBuilder()
 			.setCustomId('addState')
-			.setLabel('Ajouté un Statut')
+			.setLabel('Ajouter un Statut')
 			.setStyle(ButtonStyle.Danger);
 
 		const takenTurnButton = new ButtonBuilder()
@@ -86,12 +86,12 @@ module.exports = {
 		// action rows Add
 		const addPJButton = new ButtonBuilder()
 			.setCustomId('addPJ')
-			.setLabel('Ajouté un PJ')
+			.setLabel('Ajouter un PJ')
 			.setStyle(ButtonStyle.Success);
 
 		const addPNJButton = new ButtonBuilder()
 			.setCustomId('addPNJ')
-			.setLabel('Ajouté un PNJ')
+			.setLabel('Ajouter un PNJ')
 			.setStyle(ButtonStyle.Success);
 
 		const rowButtonAdd = new ActionRowBuilder()
