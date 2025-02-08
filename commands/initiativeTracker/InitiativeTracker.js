@@ -30,7 +30,7 @@ module.exports = {
 		const googleSheets = google.sheets({ version: 'v4', auth: client });
 
 		// récup fiche
-		const players = await retrievePlayerData();
+		const players = await retrievePlayerData(interaction.options.getString('idsheets').split(idSheetSpliter));
 		players.sort((a, b) => b.initiative - a.initiative);
 		calculateTurnOrder();
 
@@ -203,11 +203,10 @@ module.exports = {
 			nextTurn();
 		}
 
-		async function retrievePlayerData() {
+		async function retrievePlayerData(playersID) {
 			const playersPJ = [];
-			const playersId = interaction.options.getString('idsheets').split(idSheetSpliter);
 
-			for (const id of playersId) {
+			for (const id of playersID) {
 			  const getDataPlayer = await googleSheets.spreadsheets.values.get({
 					auth,
 					spreadsheetId: id,
@@ -249,17 +248,14 @@ module.exports = {
 			await button.showModal(addPJModal);
 
 			await button.awaitModalSubmit({
-				filter: (interactionModal) => interactionModal.customId === 'addPNJModal',
+				filter: (interactionModal) => interactionModal.customId === 'addPJModal',
 				time: modalTime,
 			})
 				.then(async (interactionModal) => {
 					console.log(`${interactionModal.customId} was submitted!`);
+					const newPlayers = retrievePlayerData(interactionModal.fields.getTextInputValue('idPJInput').split(idSheetSpliter));
 
-					players.push({
-						initiative: '',
-						name: '',
-						healthState: '',
-					});
+					players.push(...await newPlayers);
 					players.sort((a, b) => b.initiative - a.initiative);
 					calculateTurnOrder();
 					await interactionModal.deferUpdate();
@@ -274,12 +270,6 @@ module.exports = {
 		addPJCollector.on('end', (collected, reason) => {
 			console.log(`addPJCollecteur terminé. Raisons: ${reason}`);
 		});
-
-		/*
-		function addPlayerData(playerList, newPlayers) {
-			*
-		}
-		*/
 
 
 		// Add PNJ Button
