@@ -11,7 +11,7 @@ module.exports = {
 		.setDescription('Créer un trackeur d\'initative')
 		.addStringOption(option =>
 			option.setName('idsheets')
-				.setDescription('ajouté l\'id des fiches que vous souhaité utilisé, séparé d\'une virgule ')
+				.setDescription('ajouté l\'id des fiches que vous souhaité utilisé, séparé d\'une virgule '),
 		),
 	async execute(interaction) {
 		await interaction.deferReply();
@@ -98,7 +98,6 @@ module.exports = {
 			.addComponents(addPJButton, addPNJButton);
 
 		// Affichage du Turn Order + Button
-
 		const actionRowsMessageComponents = [row, rowButtonAdd, rowSelect, rowButtonSelect];
 
 		const response = await interaction.editReply({
@@ -209,26 +208,16 @@ module.exports = {
 			const playersId = interaction.options.getString('idsheets').split(idSheetSpliter);
 
 			for (const id of playersId) {
-			  const getInit = await googleSheets.spreadsheets.values.get({
+			  const getDataPlayer = await googleSheets.spreadsheets.values.get({
 					auth,
 					spreadsheetId: id,
-					range: 'Etat!P17',
-			  });
-			  const getName = await googleSheets.spreadsheets.values.get({
-					auth,
-					spreadsheetId: id,
-					range: 'Etat!A1',
-			  });
-			  const getHealth = await googleSheets.spreadsheets.values.get({
-					auth,
-					spreadsheetId: id,
-					range: 'Etat!A3',
+					range: 'Etat!A1:P17',
 			  });
 
 			  playersPJ.push({
-					initiative: getInit.data.values[0][0],
-					name: getName.data.values[0][0],
-					healthState: getHealth.data.values[0][0],
+					initiative: getDataPlayer.data.values[16][15],
+					name: getDataPlayer.data.values[0][0],
+					healthState: getDataPlayer.data.values[2][0],
 			  });
 			}
 			return playersPJ;
@@ -258,15 +247,42 @@ module.exports = {
 			addPJModal.addComponents(actionRowModal);
 
 			await button.showModal(addPJModal);
+
+			await button.awaitModalSubmit({
+				filter: (interactionModal) => interactionModal.customId === 'addPNJModal',
+				time: modalTime,
+			})
+				.then(async (interactionModal) => {
+					console.log(`${interactionModal.customId} was submitted!`);
+
+					players.push({
+						initiative: '',
+						name: '',
+						healthState: '',
+					});
+					players.sort((a, b) => b.initiative - a.initiative);
+					calculateTurnOrder();
+					await interactionModal.deferUpdate();
+					await interaction.editReply({
+						content: turnOrderMessage,
+						components: actionRowsMessageComponents,
+						withResponse: true,
+					});
+				})
+				.catch(err => console.log('no modal submit interaction was collected \n erreur: ' + err));
 		});
 		addPJCollector.on('end', (collected, reason) => {
 			console.log(`addPJCollecteur terminé. Raisons: ${reason}`);
 		});
 
+		/*
+		function addPlayerData(playerList, newPlayers) {
+			*
+		}
+		*/
 
-		// Add PJ Button
 
-
+		// Add PNJ Button
 		const addPNJCollector = response.createMessageComponentCollector({
 			filter: button => button.customId === 'addPNJ',
 			time: buttonTime,
