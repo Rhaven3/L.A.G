@@ -4,6 +4,7 @@ const { google } = require('googleapis');
 const buttonTime = 3_600_000;
 const modalTime = 3_600_00;
 const idSheetSpliter = ', ';
+const playerDataRange = 'Etat!A1:P17';
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -117,7 +118,7 @@ module.exports = {
 			await button.deferUpdate();
 
 			nextTurn();
-			calculateTurnOrder();
+			await calculateTurnOrder(true);
 			await interaction.editReply({
 				content: turnOrderMessage,
 				components: actionRowsMessageComponents,
@@ -151,7 +152,7 @@ module.exports = {
 			await button.deferUpdate();
 
 			precTurn();
-			calculateTurnOrder();
+			calculateTurnOrder(true);
 			await interaction.editReply({
 				content: turnOrderMessage,
 				components: actionRowsMessageComponents,
@@ -182,7 +183,7 @@ module.exports = {
 			await button.deferUpdate();
 
 			passTurn();
-			calculateTurnOrder();
+			calculateTurnOrder(true);
 			await interaction.editReply({
 				content: turnOrderMessage,
 				components: actionRowsMessageComponents,
@@ -210,13 +211,16 @@ module.exports = {
 			  const getDataPlayer = await googleSheets.spreadsheets.values.get({
 					auth,
 					spreadsheetId: id,
-					range: 'Etat!A1:P17',
+					range: playerDataRange,
 			  });
 
 			  playersPJ.push({
 					initiative: getDataPlayer.data.values[16][15],
 					name: getDataPlayer.data.values[0][0],
 					healthState: getDataPlayer.data.values[2][0],
+					id: id,
+					isPNJ: false,
+					passTurnFlag: false,
 			  });
 			}
 			return playersPJ;
@@ -317,9 +321,10 @@ module.exports = {
 						initiative: interactionModal.fields.getTextInputValue('idPNJInitInput'),
 						name: interactionModal.fields.getTextInputValue('idPNJNameInput'),
 						healthState: '<:pnj_emoji:1336728073802092637>',
+						isPNJ: true,
 					});
 					players.sort((a, b) => b.initiative - a.initiative);
-					calculateTurnOrder();
+					calculateTurnOrder(true);
 					await interactionModal.deferUpdate();
 					await interaction.editReply({
 						content: turnOrderMessage,
@@ -334,9 +339,11 @@ module.exports = {
 		});
 
 
-		function calculateTurnOrder() {
+		async function calculateTurnOrder(refresh = false) {
 			turnOrderMessage = `## __Tour ${turnNumber} :__\n`;
 			for (const player of players) {
+				if (refresh && !player.isPNJ) await refreshPlayerData(player);
+
 				if (players.indexOf(player) == currentTurn) {
 					turnOrderMessage += ':star: ';
 					if (player.passTurnNumber + 1 == turnNumber && player.passTurnFlag) player.passTurnFlag = false;
@@ -350,6 +357,22 @@ module.exports = {
 				turnOrderMessage += `**${player.name}** \`\`[ ${player.initiative} ]\`\` *${player.healthState}* \n`;
 			}
 		}
+
+
+		async function refreshPlayerData(player) {
+			const getDataPlayer = await googleSheets.spreadsheets.values.get({
+				auth,
+				spreadsheetId: player.id,
+				range: playerDataRange,
+		  });
+
+		  player.initiative = getDataPlayer.data.values[16][15];
+		  player.name = getDataPlayer.data.values[0][0];
+		  player.healthState = getDataPlayer.data.values[2][0];
+
+		  return player;
+		}
+
 
 		function populateStringSelect(stringSelect) {
 			for (const player of players) {
