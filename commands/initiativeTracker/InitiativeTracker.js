@@ -152,7 +152,7 @@ module.exports = {
 			await button.deferUpdate();
 
 			precTurn();
-			calculateTurnOrder(true);
+			await calculateTurnOrder(true);
 			await interaction.editReply({
 				content: turnOrderMessage,
 				components: actionRowsMessageComponents,
@@ -183,7 +183,7 @@ module.exports = {
 			await button.deferUpdate();
 
 			passTurn();
-			calculateTurnOrder(true);
+			await calculateTurnOrder(true);
 			await interaction.editReply({
 				content: turnOrderMessage,
 				components: actionRowsMessageComponents,
@@ -324,7 +324,7 @@ module.exports = {
 						isPNJ: true,
 					});
 					players.sort((a, b) => b.initiative - a.initiative);
-					calculateTurnOrder(true);
+					await calculateTurnOrder(true);
 					await interactionModal.deferUpdate();
 					await interaction.editReply({
 						content: turnOrderMessage,
