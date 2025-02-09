@@ -30,11 +30,6 @@ module.exports = {
 		// Instance sheet API
 		const googleSheets = google.sheets({ version: 'v4', auth: client });
 
-		// récup fiche
-		const players = await retrievePlayerData(interaction.options.getString('idsheets').split(idSheetSpliter));
-		players.sort((a, b) => b.initiative - a.initiative);
-		calculateTurnOrder();
-
 		// action rows Turn
 		const nextTurnButton = new ButtonBuilder()
 			.setCustomId('nextTurn')
@@ -63,8 +58,6 @@ module.exports = {
 		const selectPlayer = new StringSelectMenuBuilder()
 			.setCustomId('selectPlayer')
 			.setPlaceholder('Choisit un personnage');
-
-		populateStringSelect(selectPlayer);
 
 		const rowSelect = new ActionRowBuilder()
 			.addComponents(selectPlayer);
@@ -97,6 +90,13 @@ module.exports = {
 
 		const rowButtonAdd = new ActionRowBuilder()
 			.addComponents(addPJButton, addPNJButton);
+
+
+		// récup fiche
+		const players = await retrievePlayerData(interaction.options.getString('idsheets').split(idSheetSpliter));
+		players.sort((a, b) => b.initiative - a.initiative);
+		calculateTurnOrder();
+
 
 		// Affichage du Turn Order + Button
 		const actionRowsMessageComponents = [row, rowButtonAdd, rowSelect, rowButtonSelect];
@@ -204,28 +204,6 @@ module.exports = {
 			nextTurn();
 		}
 
-		async function retrievePlayerData(playersID) {
-			const playersPJ = [];
-
-			for (const id of playersID) {
-			  const getDataPlayer = await googleSheets.spreadsheets.values.get({
-					auth,
-					spreadsheetId: id,
-					range: playerDataRange,
-			  });
-
-			  playersPJ.push({
-					initiative: getDataPlayer.data.values[16][15],
-					name: getDataPlayer.data.values[0][0],
-					healthState: getDataPlayer.data.values[2][0],
-					id: id,
-					isPNJ: false,
-					passTurnFlag: false,
-			  });
-			}
-			return playersPJ;
-		}
-
 
 		// Add PJ Button
 		const addPJCollector = response.createMessageComponentCollector({
@@ -317,12 +295,15 @@ module.exports = {
 						initiative: ${interactionModal.fields.getTextInputValue('idPNJInitInput')}
 						name: ${interactionModal.fields.getTextInputValue('idPNJNameInput')}`);
 
-					players.push({
+					const newPNJ = {
 						initiative: interactionModal.fields.getTextInputValue('idPNJInitInput'),
 						name: interactionModal.fields.getTextInputValue('idPNJNameInput'),
 						healthState: '<:pnj_emoji:1336728073802092637>',
 						isPNJ: true,
-					});
+					};
+					players.push(newPNJ);
+					addPlayerStringSelect(selectPlayer, newPNJ);
+
 					players.sort((a, b) => b.initiative - a.initiative);
 					await calculateTurnOrder(true);
 					await interactionModal.deferUpdate();
@@ -359,6 +340,31 @@ module.exports = {
 		}
 
 
+		async function retrievePlayerData(playersID) {
+			const playersPJ = [];
+
+			for (const id of playersID) {
+			  const getDataPlayer = await googleSheets.spreadsheets.values.get({
+					auth,
+					spreadsheetId: id,
+					range: playerDataRange,
+			  });
+
+			  playersPJ.push({
+					initiative: getDataPlayer.data.values[16][15],
+					name: getDataPlayer.data.values[0][0],
+					healthState: getDataPlayer.data.values[2][0],
+					id: id,
+					isPNJ: false,
+					passTurnFlag: false,
+			  });
+			}
+			for (const player in playersPJ) addPlayerStringSelect(selectPlayer, player);
+
+			return playersPJ;
+		}
+
+
 		async function refreshPlayerData(player) {
 			const getDataPlayer = await googleSheets.spreadsheets.values.get({
 				auth,
@@ -374,12 +380,10 @@ module.exports = {
 		}
 
 
-		function populateStringSelect(stringSelect) {
-			for (const player of players) {
-				stringSelect.addOptions(new StringSelectMenuOptionBuilder()
-					.setLabel(`${player.name}`)
-					.setValue(`${player.name}`));
-			};
+		function addPlayerStringSelect(stringSelect, player) {
+			stringSelect.addOptions(new StringSelectMenuOptionBuilder()
+				.setValue(`${player.name}`)
+				.setLabel(`${player.name}`));
 		}
 
 	},
