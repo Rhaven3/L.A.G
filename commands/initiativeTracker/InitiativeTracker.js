@@ -1,10 +1,8 @@
-const { SlashCommandBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder, StringSelectMenuOptionBuilder } = require('discord.js');
-const { google } = require('googleapis');
-
-const buttonTime = 3_600_000;
-const modalTime = 3_600_00;
-const idSheetSpliter = ', ';
-const playerDataRange = 'Etat!A1:P17';
+const { SlashCommandBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, StringSelectMenuOptionBuilder } = require('discord.js');
+const { playerDataRange, buttonTime, modalTime, idSheetSpliter } = require('../config/config');
+const { nextTurn, precTurn, passTurn } = require('./turnManager');
+const { getPlayerData } = require('../utils/googleSheets');
+const { createTurnButtons, createSelectPlayerMenu, createAddPlayerMenu } = require('./uiComponents');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -21,75 +19,14 @@ module.exports = {
 		let turnOrderMessage = '';
 		let turnNumber = 1;
 
-		// API SHEET
-		const auth = new google.auth.GoogleAuth({
-			keyFile: 'project-it-credentials.json',
-			scopes: 'https://www.googleapis.com/auth/spreadsheets',
-		});
-		const client = await auth.getClient();
-		// Instance sheet API
-		const googleSheets = google.sheets({ version: 'v4', auth: client });
+		// Component Row
+		const rowTurn = createTurnButtons();
 
-		// action rows Turn
-		const nextTurnButton = new ButtonBuilder()
-			.setCustomId('nextTurn')
-			.setLabel('Next')
-			.setStyle(ButtonStyle.Secondary)
-			.setEmoji('➡️');
+		const selectPlayerMenu = createSelectPlayerMenu();
+		const rowSelect = selectPlayerMenu.stringSelectRow;
+		const rowButtonSelect = selectPlayerMenu.buttonSelectRow;
 
-		const precTurnButton = new ButtonBuilder()
-			.setCustomId('precTurn')
-			.setLabel('Prec')
-			.setStyle(ButtonStyle.Secondary)
-			.setEmoji('⬅️');
-
-		const passTurnButton = new ButtonBuilder()
-			.setCustomId('passTurn')
-			.setLabel('Pass')
-			.setStyle(ButtonStyle.Secondary)
-			.setEmoji('💠');
-
-
-		const row = new ActionRowBuilder()
-			.addComponents(precTurnButton, passTurnButton, nextTurnButton);
-
-		// action rows Select
-
-		const selectPlayer = new StringSelectMenuBuilder()
-			.setCustomId('selectPlayer')
-			.setPlaceholder('Choisit un personnage');
-
-		const rowSelect = new ActionRowBuilder()
-			.addComponents(selectPlayer);
-
-		// action rows Button Select
-		const addStateButton = new ButtonBuilder()
-			.setCustomId('addState')
-			.setLabel('Ajouter un Statut')
-			.setStyle(ButtonStyle.Danger);
-
-		const takenTurnButton = new ButtonBuilder()
-			.setCustomId('takenTurn')
-			.setLabel('Tour Pris !')
-			.setStyle(ButtonStyle.Primary);
-
-
-		const rowButtonSelect = new ActionRowBuilder()
-			.addComponents(addStateButton, takenTurnButton);
-
-		// action rows Add
-		const addPJButton = new ButtonBuilder()
-			.setCustomId('addPJ')
-			.setLabel('Ajouter un PJ')
-			.setStyle(ButtonStyle.Success);
-
-		const addPNJButton = new ButtonBuilder()
-			.setCustomId('addPNJ')
-			.setLabel('Ajouter un PNJ')
-			.setStyle(ButtonStyle.Success);
-
-		const rowButtonAdd = new ActionRowBuilder()
-			.addComponents(addPJButton, addPNJButton);
+		const rowButtonAdd = createAddPlayerMenu();
 
 
 		// récup fiche
@@ -99,7 +36,7 @@ module.exports = {
 
 
 		// Affichage du Turn Order + Button
-		const actionRowsMessageComponents = [row, rowButtonAdd, rowSelect, rowButtonSelect];
+		const actionRowsMessageComponents = [rowTurn, rowButtonAdd, rowSelect, rowButtonSelect];
 
 		const response = await interaction.editReply({
 			content: turnOrderMessage,
@@ -117,8 +54,7 @@ module.exports = {
 		NextCollector.on('collect', async (button) => {
 			await button.deferUpdate();
 
-			nextTurn();
-			await calculateTurnOrder(true);
+			handleTurn('next');
 			await interaction.editReply({
 				content: turnOrderMessage,
 				components: actionRowsMessageComponents,
@@ -132,15 +68,6 @@ module.exports = {
 			console.log(`NextCollecteur terminé. Raisons: ${reason}`);
 		});
 
-		function nextTurn() {
-
-			if (currentTurn == players.length - 1) {
-				turnNumber++;
-				currentTurn = 0;
-			} else {
-				currentTurn++;
-			}
-		}
 
 		// Button Prec
 		const PrecCollector = response.createMessageComponentCollector({
@@ -151,8 +78,7 @@ module.exports = {
 		PrecCollector.on('collect', async (button) => {
 			await button.deferUpdate();
 
-			precTurn();
-			await calculateTurnOrder(true);
+			handleTurn('prec');
 			await interaction.editReply({
 				content: turnOrderMessage,
 				components: actionRowsMessageComponents,
@@ -162,15 +88,6 @@ module.exports = {
 		PrecCollector.on('end', (collected, reason) => {
 			console.log(`PrecCollecteur terminé. Raisons: ${reason}`);
 		});
-
-		function precTurn() {
-			if (currentTurn == 0) {
-				turnNumber--;
-				currentTurn = players.length - 1;
-			} else {
-				currentTurn--;
-			}
-		}
 
 
 		// Button Pass
@@ -182,8 +99,7 @@ module.exports = {
 		PassCollector.on('collect', async (button) => {
 			await button.deferUpdate();
 
-			passTurn();
-			await calculateTurnOrder(true);
+			handleTurn('pass');
 			await interaction.editReply({
 				content: turnOrderMessage,
 				components: actionRowsMessageComponents,
@@ -193,16 +109,6 @@ module.exports = {
 		PassCollector.on('end', (collected, reason) => {
 			console.log(`PassCollecteur terminé. Raisons: ${reason}`);
 		});
-
-		function passTurn() {
-			for (const player of players) {
-				if (players.indexOf(player) == currentTurn) {
-					player.passTurnFlag = true;
-					player.passTurnNumber = turnNumber;
-				}
-			}
-			nextTurn();
-		}
 
 
 		// Add PJ Button
@@ -300,6 +206,7 @@ module.exports = {
 						name: interactionModal.fields.getTextInputValue('idPNJNameInput'),
 						healthState: '<:pnj_emoji:1336728073802092637>',
 						isPNJ: true,
+						passTurnFlag: false,
 					};
 					players.push(newPNJ);
 					addPlayerStringSelect(selectPlayer, newPNJ);
@@ -342,24 +249,18 @@ module.exports = {
 
 		async function retrievePlayerData(playersID) {
 			const playersPJ = [];
-
 			for (const id of playersID) {
-			  const getDataPlayer = await googleSheets.spreadsheets.values.get({
-					auth,
-					spreadsheetId: id,
-					range: playerDataRange,
-			  });
-
+			  const playerData = await getPlayerData(id, playerDataRange);
 			  playersPJ.push({
-					initiative: getDataPlayer.data.values[16][15],
-					name: getDataPlayer.data.values[0][0],
-					healthState: getDataPlayer.data.values[2][0],
-					id: id,
+					initiative: playerData[16]?.[15] ?? -999,
+					name: playerData[0]?.[0] ?? 'Inconnu au bataillon',
+					healthState: playerData[2]?.[0] ?? ':x:',
+					id,
 					isPNJ: false,
 					passTurnFlag: false,
 			  });
 			}
-			for (const player in playersPJ) addPlayerStringSelect(selectPlayer, player);
+			for (const player of playersPJ) addPlayerStringSelect(selectPlayer, player);
 
 			return playersPJ;
 		}
@@ -386,5 +287,20 @@ module.exports = {
 				.setLabel(`${player.name}`));
 		}
 
+
+		async function handleTurn(action) {
+			switch (action) {
+			case 'next':
+				({ currentTurn, turnNumber } = nextTurn(players, currentTurn, turnNumber));
+				break;
+			case 'prec':
+				({ currentTurn, turnNumber } = precTurn(players, currentTurn, turnNumber));
+				break;
+			case 'pass':
+				({ currentTurn, turnNumber } = passTurn(players, currentTurn, turnNumber));
+				break;
+			}
+			await calculateTurnOrder(true);
+		}
 	},
 };
