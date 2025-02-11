@@ -1,9 +1,10 @@
-const { ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder } = require('discord.js');
+const { ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder, StringSelectMenuOptionBuilder } = require('discord.js');
 
 /*
 * Peut être recréer des variable pour les boutons
 * pour la rapidité d'exec
 */
+
 
 function createTurnButtons() {
 	return new ActionRowBuilder().addComponents(
@@ -44,25 +45,57 @@ function createAddPlayerMenu() {
 }
 
 function createSelectPlayerMenu() {
-	const selectPlayerMenu = {
-		stringSelectRow: new ActionRowBuilder().addComponents(
-		    new StringSelectMenuBuilder()
-			    .setCustomId('selectPlayer')
-			    .setPlaceholder('Choisit un personnage'),
-	        ),
+	const stringSelectMenu = new StringSelectMenuBuilder()
+		.setCustomId('selectPlayer')
+		.setPlaceholder('Choisit un personnage');
+
+	return {
+		stringSelectRow: new ActionRowBuilder().addComponents(stringSelectMenu),
+
 		buttonSelectRow: new ActionRowBuilder().addComponents(
 			new ButtonBuilder()
-			    .setCustomId('addState')
-			    .setLabel('Ajouter un Statut')
-			    .setStyle(ButtonStyle.Danger),
+				.setCustomId('addState')
+				.setLabel('Ajouter un Statut')
+				.setStyle(ButtonStyle.Danger),
+
 			new ButtonBuilder()
-			    .setCustomId('takenTurn')
-			    .setLabel('Tour Pris !')
-			    .setStyle(ButtonStyle.Primary),
+				.setCustomId('takenTurn')
+				.setLabel('Tour Pris !')
+				.setStyle(ButtonStyle.Primary),
 		),
+		stringSelectMenu,
 	};
-	return selectPlayerMenu;
 }
 
+function addPlayerSelectMenu(selectMenu, player) {
+	selectMenu.addOptions(
+		new StringSelectMenuOptionBuilder()
+			.setValue(`${player.name}`)
+			.setLabel(`${player.name}`));
+}
 
-module.exports = { createTurnButtons, createSelectPlayerMenu, createAddPlayerMenu };
+function formatTurnOrderMessage(players, turnNumber) {
+	let turnOrderMessage = `## __Tour ${turnNumber} :__\n`;
+
+	players.forEach(player => {
+		if (player.isCurrentTurn) {
+			turnOrderMessage += ':star: ';
+		} else if (player.passTurnFlag) {
+			turnOrderMessage += ':diamond_shape_with_a_dot_inside: ';
+		} else {
+			turnOrderMessage += '- ';
+		}
+
+		turnOrderMessage += `**${player.name}** \`\`[ ${player.initiative} ]\`\` *${player.healthState}* \n`;
+	});
+
+	return turnOrderMessage;
+}
+
+module.exports = {
+	createTurnButtons,
+	createSelectPlayerMenu,
+	createAddPlayerMenu,
+	addPlayerSelectMenu,
+	formatTurnOrderMessage,
+};
