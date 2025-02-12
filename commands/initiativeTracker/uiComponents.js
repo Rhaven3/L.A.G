@@ -30,7 +30,7 @@ function createTurnButtons() {
 }
 
 function createAddPlayerMenu() {
-	return ActionRowBuilder().addComponents(
+	return new ActionRowBuilder().addComponents(
 
 		new ButtonBuilder()
 			.setCustomId('addPJ')

@@ -39,12 +39,8 @@ async function execute(interaction) {
 
 	// Affichage du Turn Order + Button
 	const actionRowsMessageComponents = [rowTurn, rowButtonAdd, rowSelect, rowButtonSelect];
-	const response = await interaction.editReply({
-		content: turnOrderMessage,
-		components: actionRowsMessageComponents,
-		withResponse: true,
-	});
-
+	updateTurnOrderMessage();
+	const response = await interaction.fetchReply();
 
 	// Button Next
 	const NextCollector = response.createMessageComponentCollector({
@@ -166,41 +162,41 @@ async function execute(interaction) {
 		const updatedPlayers = await calculateTurnOrder(players, currentTurn, turnNumber, true, refreshPlayerData);
 		turnOrderMessage = formatTurnOrderMessage(updatedPlayers, turnNumber);
 
-		await interaction.editReply({
+		const turnOrderResponse = await interaction.editReply({
 			content: turnOrderMessage,
 			components: actionRowsMessageComponents,
 			withResponse: true,
 		});
+		return turnOrderResponse;
 	}
 };
-
-
-module.exports = {
-	data,
-	execute,
-};
-
 
 async function retrievePlayerData(playersID) {
 	const playersPJ = [];
 	for (const id of playersID) {
-	  const playerData = await getPlayerData(id, playerDataRange);
-	  playersPJ.push({
+		const playerData = await getPlayerData(id, playerDataRange);
+		playersPJ.push({
 			initiative: playerData[16][15] ?? -999,
 			name: playerData[0][0] ?? 'Inconnu au bataillon',
 			healthState: playerData[2][0] ?? ':x:',
 			id,
 			isPNJ: false,
 			passTurnFlag: false,
-	  });
+		});
 	}
 	return playersPJ;
 };
 
 async function refreshPlayerData(player) {
-	const playerData = await getPlayerData(id, playerDataRange);
+	const playerData = await getPlayerData(player.id, playerDataRange);
 	player.initiative = playerData[16][15] ?? -999;
 	player.name = playerData[0][0] ?? 'Inconnu au bataillon';
 	player.healthState = playerData[2][0] ?? ':x:';
 	return player;
+};
+
+
+module.exports = {
+	data,
+	execute,
 };

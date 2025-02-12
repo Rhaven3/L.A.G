@@ -24,7 +24,7 @@ function precTurn(players, currentTurn, turnNumber) {
 function passTurn(players, currentTurn, turnNumber) {
 	players[currentTurn].passTurnFlag = true;
 	players[currentTurn].passTurnNumber = turnNumber;
-	return this.nextTurn(players, currentTurn, turnNumber);
+	return nextTurn(players, currentTurn, turnNumber);
 };
 
 async function calculateTurnOrder(players, currentTurn, turnNumber, refresh = false, refreshPlayerData) {
