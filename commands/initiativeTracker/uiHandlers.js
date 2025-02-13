@@ -1,5 +1,5 @@
 const { ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder } = require('discord.js');
-const { addPlayerStringSelect } = require('./uiComponents');
+const { addPlayerSelectMenu } = require('./uiComponents');
 const { idSheetSpliter } = require('../../config/config');
 
 // Create a modal for adding a new player
@@ -53,7 +53,7 @@ async function handleAddPJSubmit(interactionModal, getPlayersData_Callback, play
 	try {
 		console.log(`${interactionModal.customId} was submitted!`);
 		const newPlayers = await getPlayersData_Callback(interactionModal.fields.getTextInputValue('idPJInput').split(idSheetSpliter));
-		newPlayers.forEach(player => addPlayerStringSelect(selectPlayerMenu, player));
+		newPlayers.forEach(player => addPlayerSelectMenu(selectPlayerMenu, player));
 
 		players.push(...newPlayers);
 		players.sort((a, b) => b.initiative - a.initiative);
@@ -78,7 +78,7 @@ async function handleAddPNJSubmit(interactionModal, players, selectPlayerMenu) {
 		};
 
 		players.push(newPNJ);
-		addPlayerStringSelect(selectPlayerMenu, newPNJ);
+		addPlayerSelectMenu(selectPlayerMenu, newPNJ);
 		players.sort((a, b) => b.initiative - a.initiative);
 	} catch (err) {
 		console.log('Error handling PNJ submission:', err);
