@@ -52,8 +52,8 @@ function createAddPNJModal() {
 async function handleAddPJSubmit(interactionModal, getPlayersData_Callback, players, selectPlayerMenu) {
 	try {
 		console.log(`${interactionModal.customId} was submitted!`);
-		const newPlayers = await getPlayersData_Callback(players);
-		newPlayers.forEach(player => addPlayerStringSelect(selectPlayerMenu.stringSelectMenu, player));
+		const newPlayers = await getPlayersData_Callback(interactionModal.fields.getTextInputValue('idPJInput').split(idSheetSpliter));
+		newPlayers.forEach(player => addPlayerStringSelect(selectPlayerMenu, player));
 
 		players.push(...newPlayers);
 		players.sort((a, b) => b.initiative - a.initiative);
@@ -78,7 +78,7 @@ async function handleAddPNJSubmit(interactionModal, players, selectPlayerMenu) {
 		};
 
 		players.push(newPNJ);
-		addPlayerStringSelect(selectPlayerMenu.stringSelectMenu, newPNJ);
+		addPlayerStringSelect(selectPlayerMenu, newPNJ);
 		players.sort((a, b) => b.initiative - a.initiative);
 	} catch (err) {
 		console.log('Error handling PNJ submission:', err);
