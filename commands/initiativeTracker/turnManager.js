@@ -1,7 +1,5 @@
-/*
-* peut être déplacer les functions hors module
-* pour lisibilité
-*/
+const { numberTurnByPass } = require('../../config/config');
+
 
 function nextTurn(players, currentTurn, turnNumber) {
 	if (currentTurn == players.length - 1) {
@@ -35,7 +33,7 @@ async function calculateTurnOrder(players, currentTurn, turnNumber, refresh = fa
 	// Generate turn order data
 	return players.map((player, index) => {
 		if (index === currentTurn) {
-			if (player.passTurnNumber + 1 === turnNumber && player.passTurnFlag) {
+			if (player.passTurnNumber + numberTurnByPass === turnNumber && player.passTurnFlag) {
 				player.passTurnFlag = false;
 			}
 			return { ...player, isCurrentTurn: true };

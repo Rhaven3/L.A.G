@@ -1,10 +1,5 @@
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder, StringSelectMenuOptionBuilder } = require('discord.js');
 
-/*
-* Peut être recréer des variable pour les boutons
-* pour la rapidité d'exec
-*/
-
 
 function createTurnButtons() {
 	return new ActionRowBuilder().addComponents(
