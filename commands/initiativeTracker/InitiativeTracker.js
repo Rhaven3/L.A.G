@@ -1,6 +1,6 @@
 const { SlashCommandBuilder } = require('discord.js');
 const { playerDataRange, buttonTime, modalTime, idSheetSpliter } = require('../../config/config');
-const { getPlayerData } = require('../../utils/googleSheets');
+const { getPlayerData } = require('../../tools/googleSheets');
 const { nextTurn, precTurn, passTurn, calculateTurnOrder } = require('./turnManager');
 const { createTurnButtons, createSelectPlayerMenu, createAddPlayerMenu, addPlayerSelectMenu, formatTurnOrderMessage } = require('./uiComponents');
 const { createAddPJModal, createAddPNJModal, handleAddPJSubmit, handleAddPNJSubmit } = require('./uiHandlers');
