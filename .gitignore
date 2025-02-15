@@ -1,2 +1,3 @@
-node_modules
-config.json
+/project-it-credentials.json
+/node_modules
+config/config.secret.json
