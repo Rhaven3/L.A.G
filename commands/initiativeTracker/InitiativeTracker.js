@@ -1,10 +1,7 @@
 const { SlashCommandBuilder } = require('discord.js');
-const { playerDataRange, buttonTime, modalTime, idSheetSpliter } = require('../../config/config');
-const { getPlayerData } = require('../../tools/googleSheets');
-const { nextTurn, precTurn, passTurn, calculateTurnOrder } = require('./turnManager');
-const { createTurnButtons, createSelectPlayerMenu, createAddPlayerMenu, addPlayerSelectMenu, formatTurnOrderMessage } = require('./uiComponents');
-const { createAddPJModal, createAddPNJModal, handleAddPJSubmit, handleAddPNJSubmit } = require('./uiHandlers');
-
+const { buttonTime, modalTime, idSheetSpliter } = require('../../config/config');
+const { createTurnButtons, createSelectPlayerMenu, createAddPlayerMenu } = require('./uiComponents');
+const InitiativeTracker = require('./Class');
 
 const data = new SlashCommandBuilder()
 	.setName('initiative')
@@ -17,182 +14,93 @@ const data = new SlashCommandBuilder()
 async function execute(interaction) {
 	await interaction.deferReply();
 
-	let currentTurn = 0;
-	let turnOrderMessage = '';
-	let turnNumber = 1;
+	const initiativeTracker = new InitiativeTracker();
+
 
 	// récup fiche
-	const players = await retrievePlayerData(interaction.options.getString('idsheets').split(idSheetSpliter));
-	players.sort((a, b) => b.initiative - a.initiative);
+	await initiativeTracker.addPlayers(interaction.options.getString('idsheets').split(idSheetSpliter));
 
 	// Component Row
-	const rowTurn = createTurnButtons();
-
-	const selectPlayerMenu = createSelectPlayerMenu();
-	const rowSelect = selectPlayerMenu.stringSelectRow;
-	const rowButtonSelect = selectPlayerMenu.buttonSelectRow;
-
-	const rowButtonAdd = createAddPlayerMenu();
-
-	// populate stringSelect
-	players.forEach(player => addPlayerSelectMenu(selectPlayerMenu.stringSelectMenu, player));
+	const ComponentRows = initiativeTracker.createComponentsRow(
+		createTurnButtons(),
+		createAddPlayerMenu(),
+		createSelectPlayerMenu(),
+	);
 
 	// Affichage du Turn Order + Button
-	const actionRowsMessageComponents = [rowTurn, rowButtonAdd, rowSelect, rowButtonSelect];
-	updateTurnOrderMessage();
-	const response = await interaction.fetchReply();
+	await updateTurnOderReply();
+	const turnOrderResponse = await interaction.fetchReply();
 
 	// Button Next
-	const NextCollector = response.createMessageComponentCollector({
-		filter: button => button.customId === 'nextTurn',
-		time: buttonTime,
-	});
-
-	NextCollector.on('collect', async (button) => {
-		await button.deferUpdate();
-		handleTurn('next');
-		updateTurnOrderMessage();
-	});
-	NextCollector.on('end', (collected, reason) => {
-		if (reason === 'time') {
-			interaction.followUp({ content: 'Le temps est écoulé, plus de réponses.', components: [] });
+	initiativeTracker.useCollector(
+		turnOrderResponse, 
+		'NextCollector',
+		'nextTurn',
+		buttonTime,
+		async (button) => {
+			await button.deferUpdate();
+			initiativeTracker.nextTurn();
+			updateTurnOderReply();
 		}
-		console.log(`NextCollecteur terminé. Raisons: ${reason}`);
-	});
-
+	);
 
 	// Button Prec
-	const PrecCollector = response.createMessageComponentCollector({
-		filter: button => button.customId === 'precTurn',
-		time: buttonTime,
-	});
-
-	PrecCollector.on('collect', async (button) => {
-		await button.deferUpdate();
-		handleTurn('prec');
-		updateTurnOrderMessage();
-	});
-	PrecCollector.on('end', (collected, reason) => {
-		console.log(`PrecCollecteur terminé. Raisons: ${reason}`);
-	});
-
+	initiativeTracker.useCollector(
+		turnOrderResponse,
+		'PrecCollector',
+		'precTurn',
+		buttonTime,
+		async (button) => {
+			await button.deferUpdate();
+			initiativeTracker.previousTurn();
+			updateTurnOderReply();
+		}
+	);
 
 	// Button Pass
-	const PassCollector = response.createMessageComponentCollector({
-		filter: button => button.customId === 'passTurn',
-		time: buttonTime,
-	});
-
-	PassCollector.on('collect', async (button) => {
-		await button.deferUpdate();
-		handleTurn('pass');
-		updateTurnOrderMessage();
-	});
-	PassCollector.on('end', (collected, reason) => {
-		console.log(`PassCollecteur terminé. Raisons: ${reason}`);
-	});
-
+	initiativeTracker.useCollector(
+		turnOrderResponse,
+		'PassCollector',
+		'passTurn',
+		buttonTime,
+		async (button) => {
+			await button.deferUpdate();
+			initiativeTracker.passTurn();
+			updateTurnOderReply();
+		}
+	);
 
 	// Add PJ Button
-	const addPJCollector = response.createMessageComponentCollector({
-		filter: button => button.customId === 'addPJ',
-		time: buttonTime,
-	});
-
-	addPJCollector.on('collect', async (button) => {
-		const addPJModal = createAddPJModal();
-		await button.showModal(addPJModal);
-
-		await button.awaitModalSubmit({
-			filter: (interactionModal) => interactionModal.customId === 'addPJModal',
-			time: modalTime,
-		}).then(async (interactionModal) => {
-			handleAddPJSubmit(interactionModal, retrievePlayerData, players, selectPlayerMenu.stringSelectMenu);
-			await interactionModal.deferUpdate();
-			updateTurnOrderMessage();
+	initiativeTracker.useCollector(
+		turnOrderResponse,
+		'addPJCollector',
+		'addPJ',
+		buttonTime,
+		(button) => initiativeTracker.addPJ(button, modalTime, 'addPJModal', () => {
+			updateTurnOderReply();
 		})
-			.catch(err => console.log('no modal submit interaction was collected \n erreur: ' + err));
-	});
-	addPJCollector.on('end', (collected, reason) => {
-		console.log(`addPJCollecteur terminé. Raisons: ${reason}`);
-	});
-
+	);
 
 	// Add PNJ Button
-	const addPNJCollector = response.createMessageComponentCollector({
-		filter: button => button.customId === 'addPNJ',
-		time: buttonTime,
-	});
-
-	addPNJCollector.on('collect', async (button) => {
-		const addPNJModal = createAddPNJModal();
-		await button.showModal(addPNJModal);
-
-		await button.awaitModalSubmit({
-			filter: (interactionModal) => interactionModal.customId === 'addPNJModal',
-			time: modalTime,
+	initiativeTracker.useCollector(
+		turnOrderResponse,
+		'addPNJCollector',
+		'addPNJ',
+		buttonTime,
+		(button) => initiativeTracker.addPNJ(button, modalTime, 'addPNJModal', () => {
+			updateTurnOderReply();
 		})
-			.then(async (interactionModal) => {
-				handleAddPNJSubmit(interactionModal, players, selectPlayerMenu.stringSelectMenu);
-				await interactionModal.deferUpdate();
-				updateTurnOrderMessage();
-			})
-			.catch(err => console.log('no modal submit interaction was collected \n erreur: ' + err));
-	});
-	addPNJCollector.on('end', (collected, reason) => {
-		console.log(`addPNJCollecteur terminé. Raisons: ${reason}`);
-	});
+	);
 
 
-	async function handleTurn(action) {
-		switch (action) {
-		case 'next':
-			({ currentTurn, turnNumber } = nextTurn(players, currentTurn, turnNumber));
-			break;
-		case 'prec':
-			({ currentTurn, turnNumber } = precTurn(players, currentTurn, turnNumber));
-			break;
-		case 'pass':
-			({ currentTurn, turnNumber } = passTurn(players, currentTurn, turnNumber));
-			break;
-		}
-	};
-
-	async function updateTurnOrderMessage() {
-		const updatedPlayers = await calculateTurnOrder(players, currentTurn, turnNumber, true, refreshPlayerData);
-		turnOrderMessage = formatTurnOrderMessage(updatedPlayers, turnNumber);
-
-		const turnOrderResponse = await interaction.editReply({
-			content: turnOrderMessage,
-			components: actionRowsMessageComponents,
+	// Update Turn Order
+	async function updateTurnOderReply() {
+		await interaction.editReply({
+			content: await initiativeTracker.updateUI(),
+			components: ComponentRows,
 			withResponse: true,
 		});
-		return turnOrderResponse;
 	}
-};
-
-async function retrievePlayerData(playersID) {
-	const playersPJ = [];
-	for (const id of playersID) {
-		const playerData = await getPlayerData(id, playerDataRange);
-		playersPJ.push({
-			initiative: playerData[16][15] ?? -999,
-			name: playerData[0][0] ?? 'Inconnu au bataillon',
-			healthState: playerData[2][0] ?? ':x:',
-			id,
-			isPNJ: false,
-			passTurnFlag: false,
-		});
-	}
-	return playersPJ;
-};
-
-async function refreshPlayerData(player) {
-	const playerData = await getPlayerData(player.id, playerDataRange);
-	player.initiative = playerData[16][15] ?? -999;
-	player.name = playerData[0][0] ?? 'Inconnu au bataillon';
-	player.healthState = playerData[2][0] ?? ':x:';
-	return player;
 };
 
 

@@ -53,9 +53,19 @@ async function handleAddPJSubmit(interactionModal, getPlayersData_Callback, play
 	try {
 		console.log(`${interactionModal.customId} was submitted!`);
 		const newPlayers = await getPlayersData_Callback(interactionModal.fields.getTextInputValue('idPJInput').split(idSheetSpliter));
-		newPlayers.forEach(player => addPlayerSelectMenu(selectPlayerMenu, player));
+		newPlayers.forEach(player => {
 
-		players.push(...newPlayers);
+			// Check if the player already exists
+			const playerExist = players.find(p => p.name === player.name);
+			if (playerExist) {
+				console.log('Player already exists');
+				return;
+			}
+
+			players.push(player);
+			addPlayerSelectMenu(selectPlayerMenu, player);
+		});
+
 		players.sort((a, b) => b.initiative - a.initiative);
 	} catch (err) {
 		console.log('Error handling PJ submission:', err);
@@ -68,6 +78,13 @@ async function handleAddPNJSubmit(interactionModal, players, selectPlayerMenu) {
 		console.log(`${interactionModal.customId} was submitted!
             initiative: ${interactionModal.fields.getTextInputValue('idPNJInitInput')}
             name: ${interactionModal.fields.getTextInputValue('idPNJNameInput')}`);
+
+		// verif si le PNJ existe déjà
+		const PNJExist = players.find(player => player.name === interactionModal.fields.getTextInputValue('idPNJNameInput'));
+		if (PNJExist) {
+			console.log('PNJ already exist');
+			return;
+		}
 
 		const newPNJ = {
 			initiative: interactionModal.fields.getTextInputValue('idPNJInitInput'),
