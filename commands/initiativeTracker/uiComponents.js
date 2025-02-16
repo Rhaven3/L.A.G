@@ -51,12 +51,17 @@ function createSelectPlayerMenu() {
 			new ButtonBuilder()
 				.setCustomId('addState')
 				.setLabel('Ajouter un Statut')
-				.setStyle(ButtonStyle.Danger),
+				.setStyle(ButtonStyle.Secondary),
 
 			new ButtonBuilder()
 				.setCustomId('takenTurn')
 				.setLabel('Tour Pris !')
 				.setStyle(ButtonStyle.Primary),
+
+			new ButtonBuilder()
+				.setCustomId('removePlayer')
+				.setLabel('Supprimer Personnage')
+				.setStyle(ButtonStyle.Danger),
 		),
 		stringSelectMenu,
 	};

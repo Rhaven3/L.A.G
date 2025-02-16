@@ -31,6 +31,8 @@ async function execute(interaction) {
 	await updateTurnOderReply(false);
 	const turnOrderResponse = await interaction.fetchReply();
 
+
+	// Turn Buttons
 	// Button Next
 	initiativeTracker.useCollector(
 		turnOrderResponse,
@@ -70,6 +72,8 @@ async function execute(interaction) {
 		},
 	);
 
+
+	// Add Player Menu
 	// Add PJ Button
 	initiativeTracker.useCollector(
 		turnOrderResponse,
@@ -88,6 +92,56 @@ async function execute(interaction) {
 		'addPNJ',
 		buttonTime,
 		(button) => initiativeTracker.addPNJ(button, modalTime, 'addPNJModal', async () => {
+			await updateTurnOderReply();
+		}),
+	);
+
+
+	// Select Player Menu
+	// Select Player
+	initiativeTracker.useCollector(
+		turnOrderResponse,
+		'selectPlayerCollector',
+		'selectPlayer',
+		buttonTime,
+		async (select) => {
+			await select.deferUpdate();
+			await initiativeTracker.selectPlayer(select.values[0]);
+			console.log(`Selected Player: ${initiativeTracker.selectedPlayer}`);
+		},
+	);
+
+	// Add State Button
+	initiativeTracker.useCollector(
+		turnOrderResponse,
+		'addStateCollector',
+		'addState',
+		buttonTime,
+		(button) => initiativeTracker.addState(button, modalTime, 'addStateModal', async () => {
+			await updateTurnOderReply();
+		}),
+	);
+
+	// Taken Turn Button
+	initiativeTracker.useCollector(
+		turnOrderResponse,
+		'takenTurnCollector',
+		'takenTurn',
+		buttonTime,
+		async (button) => {
+			await button.deferUpdate();
+			initiativeTracker.takeTurn();
+			updateTurnOderReply();
+		},
+	);
+
+	// Remove Player Button
+	initiativeTracker.useCollector(
+		turnOrderResponse,
+		'removePlayerCollector',
+		'removePlayer',
+		buttonTime,
+		(button) => initiativeTracker.removePlayer(button, async () => {
 			await updateTurnOderReply();
 		}),
 	);

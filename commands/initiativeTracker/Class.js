@@ -9,6 +9,7 @@ class InitiativeTracker {
 		this.players = [];
 		this.currentTurn = 0;
 		this.turnNumber = 1;
+		this.selectedPlayer = null;
 	}
 
 	// Method to add a player to the initiative tracker
@@ -125,6 +126,22 @@ class InitiativeTracker {
 			handleAddPNJSubmit(interactionModal, this.players, this.selectPlayerMenu.stringSelectMenu);
 			interactionCallback();
 		}).catch(err => console.log('no addPNJmodal submit interaction was collected \n erreur: ' + err));
+	}
+
+
+	// Method to select a player
+	async selectPlayer(playerName) {
+		this.selectedPlayer = playerName;
+	}
+
+	// Method to take a Turn for a player
+	// This method finds the selected player and processes their turn.
+	async takeTurn() {
+		const selectedPlayer = this.players.find(player => player.name === this.selectedPlayer);
+		if (selectedPlayer) {
+			const selectedIndex = this.players.indexOf(selectedPlayer);
+			this.players[selectedIndex].passTurnFlag = false;
+		}
 	}
 }
 
