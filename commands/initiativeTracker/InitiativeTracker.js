@@ -28,20 +28,20 @@ async function execute(interaction) {
 	);
 
 	// Affichage du Turn Order + Button
-	await updateTurnOderReply();
+	await updateTurnOderReply(false);
 	const turnOrderResponse = await interaction.fetchReply();
 
 	// Button Next
 	initiativeTracker.useCollector(
-		turnOrderResponse, 
+		turnOrderResponse,
 		'NextCollector',
 		'nextTurn',
 		buttonTime,
 		async (button) => {
 			await button.deferUpdate();
 			initiativeTracker.nextTurn();
-			updateTurnOderReply();
-		}
+			await updateTurnOderReply();
+		},
 	);
 
 	// Button Prec
@@ -53,8 +53,8 @@ async function execute(interaction) {
 		async (button) => {
 			await button.deferUpdate();
 			initiativeTracker.previousTurn();
-			updateTurnOderReply();
-		}
+			await updateTurnOderReply();
+		},
 	);
 
 	// Button Pass
@@ -66,8 +66,8 @@ async function execute(interaction) {
 		async (button) => {
 			await button.deferUpdate();
 			initiativeTracker.passTurn();
-			updateTurnOderReply();
-		}
+			await updateTurnOderReply();
+		},
 	);
 
 	// Add PJ Button
@@ -76,9 +76,9 @@ async function execute(interaction) {
 		'addPJCollector',
 		'addPJ',
 		buttonTime,
-		(button) => initiativeTracker.addPJ(button, modalTime, 'addPJModal', () => {
-			updateTurnOderReply();
-		})
+		(button) => initiativeTracker.addPJ(button, modalTime, 'addPJModal', async () => {
+			await updateTurnOderReply();
+		}),
 	);
 
 	// Add PNJ Button
@@ -87,19 +87,27 @@ async function execute(interaction) {
 		'addPNJCollector',
 		'addPNJ',
 		buttonTime,
-		(button) => initiativeTracker.addPNJ(button, modalTime, 'addPNJModal', () => {
-			updateTurnOderReply();
-		})
+		(button) => initiativeTracker.addPNJ(button, modalTime, 'addPNJModal', async () => {
+			await updateTurnOderReply();
+		}),
 	);
 
 
 	// Update Turn Order
-	async function updateTurnOderReply() {
-		await interaction.editReply({
-			content: await initiativeTracker.updateUI(),
-			components: ComponentRows,
-			withResponse: true,
-		});
+	async function updateTurnOderReply(refresh = true) {
+		if (!ComponentRows || !Array.isArray(ComponentRows)) {
+			console.error('ComponentRows is not an array or is undefined');
+			return;
+		}
+
+		const updatedUI = await initiativeTracker.updateUI(refresh);
+		if (updatedUI) {
+			await interaction.editReply({
+				content: updatedUI,
+				components: ComponentRows,
+				withResponse: true,
+			});
+		}
 	}
 };
 
