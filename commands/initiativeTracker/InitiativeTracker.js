@@ -141,9 +141,11 @@ async function execute(interaction) {
 		'removePlayerCollector',
 		'removePlayer',
 		buttonTime,
-		(button) => initiativeTracker.removePlayer(button, async () => {
-			await updateTurnOderReply();
-		}),
+		async (button) => {
+			await button.deferUpdate();
+			initiativeTracker.removePlayer();
+			updateTurnOderReply();
+		},
 	);
 
 

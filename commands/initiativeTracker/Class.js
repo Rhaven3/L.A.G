@@ -19,11 +19,6 @@ class InitiativeTracker {
 		this.players.sort((a, b) => b.initiative - a.initiative);
 	}
 
-	// Method to remove a player from the initiative tracker
-	removePlayer(playerID) {
-		this.players = this.players.filter(player => player.id !== playerID);
-	}
-
 
 	// Method to create Components Row
 	createComponentsRow(rowTurn, rowButtonAdd, selectPlayerMenu) {
@@ -141,6 +136,14 @@ class InitiativeTracker {
 		if (selectedPlayer) {
 			const selectedIndex = this.players.indexOf(selectedPlayer);
 			this.players[selectedIndex].passTurnFlag = false;
+		}
+	}
+
+	// Method to remove a player from the initiative tracker
+	removePlayer() {
+		const selectedPlayer = this.players.find(player => player.name === this.selectedPlayer);
+		if (selectedPlayer) {
+			this.players = this.players.filter(player => player.id !== selectedPlayer.id);
 		}
 	}
 }
