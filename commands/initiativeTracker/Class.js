@@ -125,10 +125,10 @@ class InitiativeTracker {
 
 	// Method to add a State to a player
 	async addState(interaction, time, idModal, interactionCallback) {
-		const addStateModal = createAddStateModal();
+		const addStateModal = createAddStateModal(this.selectedPlayer, this.players);
 		await interaction.showModal(addStateModal);
 
-		await interaction.showModal({
+		await interaction.awaitModalSubmit({
 			filter: interactionModal => interactionModal.customId === idModal,
 			time,
 		}).then(async interactionModal => {
@@ -162,6 +162,28 @@ class InitiativeTracker {
 	}
 }
 
+/*
+class PNJ {
+	constructor(initiative = -999, name = 'Inconnu au bataillon') {
+		this.initiative = initiative;
+		this.name = name;
+		this.passTurnFlag = false;
+		this.healthState = '<:pnj_emoji:1336728073802092637>';
+		this.state;
+		this.isPNJ = true;
+	}
+}
+
+class PJ extends PNJ {
+	constructor(id, initiative = -999, name = 'Inconnu au bataillon') {
+		super(initiative, name, passTurnFlag, state);
+
+
+	}
+
+
+}
+*/
 
 async function retrievePlayerData(playersID) {
 	const playersPJ = [];
