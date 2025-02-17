@@ -48,6 +48,29 @@ function createAddPNJModal() {
 	return modal;
 }
 
+// Create a modal for adding a statut to a Player
+function createAddStateModal(player) {
+	const modal = new ModalBuilder()
+		.setCustomId('addStateModal')
+		.setTitle(`Ajouter un statut à ${player.name}`);
+
+	// state Value
+	let state = null;
+	if (player.state) state = player.state;
+
+	const stateInput = new TextInputBuilder()
+		.setCustomId('idStateInput')
+		.setLabel('Le.s statut.s que vous voulez ajouter')
+		.setStyle(TextInputStyle.Short)
+		.setPlaceholder('Paralysé, Petrifié, :zap:, :drop_of_blood:, ...')
+		.setValue(state);
+
+	const actionRow1 = new ActionRowBuilder().addComponents(stateInput);
+
+	modal.addComponents(actionRow1);
+	return modal;
+}
+
 // Handle Player (PJ) Submission
 async function handleAddPJSubmit(interactionModal, getPlayersData_Callback, players, selectPlayerMenu) {
 	try {
@@ -102,9 +125,29 @@ async function handleAddPNJSubmit(interactionModal, players, selectPlayerMenu) {
 	}
 }
 
+// Handle addState submit
+function handleAddStateSubmit(interactionModal, players, selectedPlayer) {
+	try {
+		console.log(`${interactionModal.customId} was submitted!`);
+
+		const PlayerExist = players.find(player => player.id === selectedPlayer.id);
+		if (!PlayerExist) {
+			console.log('Selected Player didn\'t exist ?!');
+			return;
+		}
+
+		selectedPlayer.state = interactionModal.fields.getTextInputValue('idStateInput');
+	} catch (error) {
+		console.log(`Error handling State submission for ${selectedPlayer.name}: ${error}`);
+	}
+}
+
+
 module.exports = {
 	createAddPJModal,
 	createAddPNJModal,
+	createAddStateModal,
 	handleAddPJSubmit,
 	handleAddPNJSubmit,
+	handleAddStateSubmit,
 };

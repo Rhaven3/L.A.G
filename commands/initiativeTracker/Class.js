@@ -2,7 +2,7 @@ const { playerDataRange } = require('../../config/config');
 const { getPlayerData } = require('../../tools/googleSheets');
 const { nextTurn, precTurn, passTurn, calculateTurnOrder } = require('./turnManager');
 const { addPlayerSelectMenu, formatTurnOrderMessage } = require('./uiComponents');
-const { createAddPJModal, createAddPNJModal, handleAddPJSubmit, handleAddPNJSubmit } = require('./uiHandlers');
+const { createAddPJModal, createAddPNJModal, handleAddPJSubmit, handleAddPNJSubmit, createAddStateModal, handleAddStateSubmit } = require('./uiHandlers');
 
 class InitiativeTracker {
 	constructor() {
@@ -116,13 +116,27 @@ class InitiativeTracker {
 			filter: interactionModal => interactionModal.customId === idModal,
 			time,
 		}).then(async interactionModal => {
-			console.log(`${interactionModal.customId} was submitted!`);
 			await interactionModal.deferUpdate();
 			handleAddPNJSubmit(interactionModal, this.players, this.selectPlayerMenu.stringSelectMenu);
 			interactionCallback();
 		}).catch(err => console.log('no addPNJmodal submit interaction was collected \n erreur: ' + err));
 	}
 
+
+	// Method to add a State to a player
+	async addState(interaction, time, idModal, interactionCallback) {
+		const addStateModal = createAddStateModal();
+		await interaction.showModal(addStateModal);
+
+		await interaction.showModal({
+			filter: interactionModal => interactionModal.customId === idModal,
+			time,
+		}).then(async interactionModal => {
+			await interactionModal.deferUpdate();
+			handleAddStateSubmit(interactionModal, this.players, this.selectedPlayer);
+			interactionCallback();
+		}).catch(err => console.log('no addStatemodal submit interaction was collected \n erreur: ' + err));
+	}
 
 	// Method to select a player
 	async selectPlayer(playerName) {
