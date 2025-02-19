@@ -1,4 +1,4 @@
-const { playerDataRange } = require('../../config/config');
+const { playerDataRange, defaultInitiative, defaultName, defaultState } = require('../../config/config');
 const { getPlayerData } = require('../../tools/googleSheets');
 const { nextTurn, precTurn, passTurn, calculateTurnOrder } = require('./turnManager');
 const { addPlayerSelectMenu, formatTurnOrderMessage } = require('./uiComponents');
@@ -71,7 +71,7 @@ class InitiativeTracker {
 
 	// Method to update the turn order message
 	async updateUI(refresh = true) {
-		const turnOrder = await calculateTurnOrder(this.players, this.currentTurn, this.turnNumber, refreshPlayerData, refresh);
+		const turnOrder = await calculateTurnOrder(this.players, this.currentTurn, this.turnNumber, refresh);
 		const turnOrderMessage = formatTurnOrderMessage(turnOrder, this.turnNumber);
 		return turnOrderMessage;
 	}
@@ -117,7 +117,7 @@ class InitiativeTracker {
 			time,
 		}).then(async interactionModal => {
 			await interactionModal.deferUpdate();
-			handleAddPNJSubmit(interactionModal, this.players, this.selectPlayerMenu.stringSelectMenu);
+			handleAddPNJSubmit(interactionModal, this.players, this.selectPlayerMenu.stringSelectMenu, PNJ);
 			interactionCallback();
 		}).catch(err => console.log('no addPNJmodal submit interaction was collected \n erreur: ' + err));
 	}
@@ -162,12 +162,13 @@ class InitiativeTracker {
 	}
 }
 
-/*
+// TODO: Player -> Class
 class PNJ {
-	constructor(initiative = -999, name = 'Inconnu au bataillon') {
+	constructor(initiative = defaultInitiative, name = defaultName) {
 		this.initiative = initiative;
 		this.name = name;
 		this.passTurnFlag = false;
+		this.passTurnNumer;
 		this.healthState = '<:pnj_emoji:1336728073802092637>';
 		this.state;
 		this.isPNJ = true;
@@ -175,38 +176,38 @@ class PNJ {
 }
 
 class PJ extends PNJ {
-	constructor(id, initiative = -999, name = 'Inconnu au bataillon') {
-		super(initiative, name, passTurnFlag, state);
-
-
+	constructor(id, initiative = defaultInitiative, name = defaultName, healthState = defaultState) {
+		super(initiative, name);
+		this.id = id;
+		this.healthState = healthState;
+		this.state;
+		this.isPNJ = false;
+		this.passTurnFlag = false;
+		this.passTurnNumer;
 	}
 
-
+	async setPlayerData() {
+		const playerData = await getPlayerData(this.id, playerDataRange);
+		this.initiative = playerData[16][15] ?? defaultInitiative;
+		this.name = playerData[0][0] ?? defaultName;
+		this.healthState = playerData[2][0] ?? defaultState;
+	}
 }
-*/
+
 
 async function retrievePlayerData(playersID) {
 	const playersPJ = [];
 	for (const id of playersID) {
-		const playerData = await getPlayerData(id, playerDataRange);
-		playersPJ.push({
-			initiative: playerData[16][15] ?? -999,
-			name: playerData[0][0] ?? 'Inconnu au bataillon',
-			healthState: playerData[2][0] ?? ':x:',
-			id,
-			isPNJ: false,
-			passTurnFlag: false,
-		});
+		const newPlayer = new PJ(id);
+		await newPlayer.setPlayerData();
+		playersPJ.push(newPlayer);
 	}
 	return playersPJ;
 };
 
-async function refreshPlayerData(player) {
-	const playerData = await getPlayerData(player.id, playerDataRange);
-	player.initiative = playerData[16][15] ?? -999;
-	player.name = playerData[0][0] ?? 'Inconnu au bataillon';
-	player.healthState = playerData[2][0] ?? ':x:';
-	return player;
-};
 
-module.exports = InitiativeTracker;
+module.exports = {
+	InitiativeTracker,
+	PNJ,
+	PJ,
+};

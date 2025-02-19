@@ -25,21 +25,22 @@ function passTurn(players, currentTurn, turnNumber) {
 	return nextTurn(players, currentTurn, turnNumber);
 };
 
-async function calculateTurnOrder(players, currentTurn, turnNumber, refreshPlayerData, refresh) {
+async function calculateTurnOrder(players, currentTurn, turnNumber, refresh) {
 	const refreshedPlayers = await Promise.all(players.map(player => {
 		if (!player.isPNJ && refresh) {
 			console.log(`Refreshing player data for ${player.name}`);
-			return refreshPlayerData(player);
+			player.setPlayerData();
+			return player;
 		}
 		return player;
 	}));
+
 	// Sort players by initiative
 	refreshedPlayers.sort((a, b) => b.initiative - a.initiative);
-
 	// Generate turn order data
 	return refreshedPlayers.map((player, index) => {
 		if (index === currentTurn) {
-			if (player.passTurnNumber + numberTurnByPass === turnNumber && player.passTurnFlag) {
+			if (player.passTurnFlag && player.passTurnNumber + numberTurnByPass === turnNumber) {
 				player.passTurnFlag = false;
 			}
 			return { ...player, isCurrentTurn: true };

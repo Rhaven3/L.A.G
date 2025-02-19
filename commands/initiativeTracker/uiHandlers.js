@@ -99,7 +99,7 @@ async function handleAddPJSubmit(interactionModal, getPlayersData_Callback, play
 }
 
 // Handle PNJ Submission
-async function handleAddPNJSubmit(interactionModal, players, selectPlayerMenu) {
+async function handleAddPNJSubmit(interactionModal, players, selectPlayerMenu, PNJ) {
 	try {
 		console.log(`${interactionModal.customId} was submitted!
             initiative: ${interactionModal.fields.getTextInputValue('idPNJInitInput')}
@@ -112,13 +112,10 @@ async function handleAddPNJSubmit(interactionModal, players, selectPlayerMenu) {
 			return;
 		}
 
-		const newPNJ = {
-			initiative: interactionModal.fields.getTextInputValue('idPNJInitInput'),
-			name: interactionModal.fields.getTextInputValue('idPNJNameInput'),
-			healthState: '<:pnj_emoji:1336728073802092637>',
-			isPNJ: true,
-			passTurnFlag: false,
-		};
+		const newPNJ = new PNJ(
+			interactionModal.fields.getTextInputValue('idPNJInitInput'),
+			interactionModal.fields.getTextInputValue('idPNJNameInput'),
+		);
 
 		players.push(newPNJ);
 		addPlayerSelectMenu(selectPlayerMenu, newPNJ);

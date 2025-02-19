@@ -1,7 +1,7 @@
 const { SlashCommandBuilder } = require('discord.js');
 const { buttonTime, modalTime, idSheetSpliter } = require('../../config/config');
 const { createTurnButtons, createSelectPlayerMenu, createAddPlayerMenu } = require('./uiComponents');
-const InitiativeTracker = require('./Class');
+const { InitiativeTracker } = require('./Class');
 
 const data = new SlashCommandBuilder()
 	.setName('initiative')
