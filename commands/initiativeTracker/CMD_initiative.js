@@ -107,7 +107,7 @@ async function execute(interaction) {
 		async (select) => {
 			await select.deferUpdate();
 			await initiativeTracker.selectPlayer(select.values[0]);
-			console.log(`Selected Player: ${initiativeTracker.selectedPlayer}`);
+			console.log(`Selected Player: ${initiativeTracker.selectedPlayer.name}`);
 		},
 	);
 

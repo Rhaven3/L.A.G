@@ -122,7 +122,6 @@ class InitiativeTracker {
 		}).catch(err => console.log('no addPNJmodal submit interaction was collected \n erreur: ' + err));
 	}
 
-
 	// Method to add a State to a player
 	async addState(interaction, time, idModal, interactionCallback) {
 		const addStateModal = createAddStateModal(this.selectedPlayer, this.players);
@@ -140,29 +139,26 @@ class InitiativeTracker {
 
 	// Method to select a player
 	async selectPlayer(playerName) {
-		this.selectedPlayer = playerName;
+		this.selectedPlayer = this.players.find(player => player.name === playerName);
 	}
 
 	// Method to take a Turn for a player
 	// This method finds the selected player and processes their turn.
 	async takeTurn() {
-		const selectedPlayer = this.players.find(player => player.name === this.selectedPlayer);
-		if (selectedPlayer) {
-			const selectedIndex = this.players.indexOf(selectedPlayer);
+		if (this.selectedPlayer) {
+			const selectedIndex = this.players.indexOf(this.selectedPlayer);
 			this.players[selectedIndex].passTurnFlag = false;
 		}
 	}
 
 	// Method to remove a player from the initiative tracker
 	removePlayer() {
-		const selectedPlayer = this.players.find(player => player.name === this.selectedPlayer);
-		if (selectedPlayer) {
-			this.players = this.players.filter(player => player.id !== selectedPlayer.id);
+		if (this.selectedPlayer) {
+			this.players = this.players.filter(player => player.id !== this.selectedPlayer.id);
 		}
 	}
 }
 
-// TODO: Player -> Class
 class PNJ {
 	constructor(initiative = defaultInitiative, name = defaultName) {
 		this.initiative = initiative;
