@@ -88,7 +88,7 @@ function formatTurnOrderMessage(players, turnNumber) {
 
 		// Si Statut Player
 		let state = '';
-		if (player.state) state = `{${player.state}}`;
+		if (player.state) state = `{ ${player.state} }`;
 
 		turnOrderMessage += `**${player.name}** \`\`[ ${player.initiative} ]\`\` *${player.healthState}*    ${state}\n`;
 	});

@@ -26,10 +26,10 @@ function passTurn(players, currentTurn, turnNumber) {
 };
 
 async function calculateTurnOrder(players, currentTurn, turnNumber, refresh) {
-	const refreshedPlayers = await Promise.all(players.map(player => {
+	const refreshedPlayers = await Promise.all(players.map(async (player) => {
 		if (!player.isPNJ && refresh) {
 			console.log(`Refreshing player data for ${player.name}`);
-			player.setPlayerData();
+			await player.setPlayerData();
 			return player;
 		}
 		return player;
