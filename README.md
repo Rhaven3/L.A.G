@@ -7,7 +7,7 @@ This bot is designed to help Dungeon Masters and Players track initiative in Tab
 ### 1️⃣ Prerequisites
 - Install [Node.js](https://nodejs.org/fr/download) (v20.18.1 or later)
 - Create a Google Cloud Project & enable Google Sheets API
-  - [ 5 first mins -> [Vidéo Google Sheet API with JS](https://youtu.be/PFJNJQCU_lo) ]
+  - -> [Vidéo Google Sheet API with JS](https://youtu.be/PFJNJQCU_lo)
 - Set up a Discord Bot on the Discord Developer Portal
 <!-- ajouté le lien de discord dev portal -->
 
@@ -46,13 +46,14 @@ node index.js
 
 
 ## Available Commands
-| name | Command | Description |
-| ---- | ------- | ----------- |
-| [initiative](#initiative) | ``/initiative idSheets:<id1, id2, etc...> `` | Starts an initiative tracker |
+| Command | Description |
+| ------- | ----------- |
+| ``/initiative idSheets:<id1, id2, etc...> `` | Starts an initiative tracker |
 
+<!--
 ### Initiative
 Starts an initiative tracker
-
+-->
 
 ## 💖 Support the project
 - Starring and sharing the project. 🚀
@@ -60,7 +61,7 @@ Starts an initiative tracker
 
 
 ## 📜 License
-<!-- This project is licensed under the MIT License. -->
+This project is licensed under the MIT License.
 
 
 ## 🛠️ Support & Contact
@@ -68,7 +69,7 @@ Starts an initiative tracker
 - Directly put your own Improvement with [Pull requests](https://github.com/Rhaven3/ITRP_DiscordBot/pulls)
 
 ---
-Contributions are welcome! <3
+Contributions are welcome! <3 ( check [CONTRIBUTING.md]() if you want so )
 Made with ❤️ for all TTRPG fans! 🎲
 
 
