@@ -69,7 +69,7 @@ This project is licensed under the MIT License.
 - Directly put your own Improvement with [Pull requests](https://github.com/Rhaven3/ITRP_DiscordBot/pulls)
 
 ---
-Contributions are welcome! <3 ( check [CONTRIBUTING.md]() if you want so )
+Contributions are welcome! <3 ( check [CONTRIBUTING.md](https://github.com/Rhaven3/ITRP_DiscordBot/blob/main/docs/CONTRIBUTING.md) if you want so )
 Made with ❤️ for all TTRPG fans! 🎲
 
 
