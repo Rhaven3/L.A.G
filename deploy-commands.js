@@ -38,6 +38,8 @@ const rest = new REST().setToken(token);
 			Routes.applicationGuildCommands(clientId, LAGGuildID),
 			{ body: commands },
 		);
+
+		// To refresh command for all guild
 		/*
         const data = await rest.put(
 	        Routes.applicationCommands(clientId),
