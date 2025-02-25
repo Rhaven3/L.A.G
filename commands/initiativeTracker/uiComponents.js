@@ -74,6 +74,21 @@ function addPlayerSelectMenu(selectMenu, player) {
 			.setLabel(`${player.name}`));
 }
 
+
+function createConfirmButton() {
+	return new ActionRowBuilder().addComponents(
+		new ButtonBuilder()
+			.setCustomId('yConfirm')
+			.setLabel('OUI')
+			.setStyle(ButtonStyle.Success),
+		new ButtonBuilder()
+			.setCustomId('nConfirm')
+			.setLabel('NON')
+			.setStyle(ButtonStyle.Secondary),
+	);
+}
+
+
 function formatTurnOrderMessage(players, turnNumber) {
 	let turnOrderMessage = `## __Tour ${turnNumber} :__\n`;
 
@@ -102,4 +117,5 @@ module.exports = {
 	createAddPlayerMenu,
 	addPlayerSelectMenu,
 	formatTurnOrderMessage,
+	createConfirmButton,
 };

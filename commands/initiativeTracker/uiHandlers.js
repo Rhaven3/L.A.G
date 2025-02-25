@@ -49,16 +49,14 @@ function createAddPNJModal() {
 }
 
 // Create a modal for adding a statut to a Player
-function createAddStateModal(selectedplayer, players) {
+function createAddStateModal(selectedplayer) {
 	const modal = new ModalBuilder()
 		.setCustomId('addStateModal')
-		.setTitle(`Ajouter un statut à ${selectedplayer}`);
+		.setTitle(`Ajouter un statut à ${selectedplayer.name}`);
 
 	// state Value
-	const selectedPlayer = players.find(player => player.name === selectedplayer);
-	const selectedIndex = players.indexOf(selectedPlayer);
 	let state = '';
-	if (players[selectedIndex].state) state = players[selectedIndex].state;
+	if (selectedplayer.state) state = selectedplayer.state;
 
 	const stateInput = new TextInputBuilder()
 		.setCustomId('idStateInput')
@@ -129,15 +127,13 @@ async function handleAddPNJSubmit(interactionModal, players, selectPlayerMenu, P
 function handleAddStateSubmit(interactionModal, players, selectedPlayer) {
 	try {
 		console.log(`${interactionModal.customId} was submitted!`);
-		const PlayerExist = players.find(player => player.name === selectedPlayer);
+		const PlayerExist = players.find(player => player.name === selectedPlayer.name);
 		if (!PlayerExist) {
 			console.log('Selected Player didn\'t exist ?!');
 			return;
 		}
 
-		const selectedPlayerObject = players.find(player => player.name === selectedPlayer);
-		const selectedIndex = players.indexOf(selectedPlayerObject);
-		players[selectedIndex].state = interactionModal.fields.getTextInputValue('idStateInput');
+		selectedPlayer.state = interactionModal.fields.getTextInputValue('idStateInput');
 	} catch (error) {
 		console.log(`Error handling State submission for ${selectedPlayer.name}: ${error}`);
 	}

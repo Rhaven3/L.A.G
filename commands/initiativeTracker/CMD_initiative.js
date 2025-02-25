@@ -1,6 +1,6 @@
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const { buttonTime, modalTime, idSheetSpliter } = require('../../config/config');
-const { createTurnButtons, createSelectPlayerMenu, createAddPlayerMenu } = require('./uiComponents');
+const { createTurnButtons, createSelectPlayerMenu, createAddPlayerMenu, createConfirmButton } = require('./uiComponents');
 const { InitiativeTracker } = require('./Class');
 
 const data = new SlashCommandBuilder()
@@ -143,8 +143,40 @@ async function execute(interaction) {
 		buttonTime,
 		async (button) => {
 			await button.deferUpdate();
-			initiativeTracker.removePlayer();
-			updateTurnOderReply();
+			// Confirm
+			const confirmComponnentsRow = createConfirmButton();
+			const confirmResponse = await interaction.followUp({
+				content: `Êtes-vous sûr de supprimé ${initiativeTracker.selectedPlayer.name} ?`,
+				flags: MessageFlags.Ephemeral,
+				components: [confirmComponnentsRow],
+				withResponse: true,
+			});
+
+			// Collector Yes Confirm
+			initiativeTracker.useCollector(
+				confirmResponse,
+				'yConfirmCollector',
+				'yConfirm',
+				buttonTime,
+				async (buttonConfirm) => {
+					await buttonConfirm.deferUpdate();
+					initiativeTracker.removePlayer();
+					updateTurnOderReply();
+					await buttonConfirm.deleteReply();
+				},
+			);
+
+			// Collector No Confirm
+			initiativeTracker.useCollector(
+				confirmResponse,
+				'nConfirmCollector',
+				'nConfirm',
+				buttonTime,
+				async (buttonConfirm) => {
+					await buttonConfirm.deferUpdate();
+					await buttonConfirm.deleteReply();
+				},
+			);
 		},
 	);
 

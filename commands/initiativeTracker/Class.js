@@ -124,7 +124,7 @@ class InitiativeTracker {
 
 	// Method to add a State to a player
 	async addState(interaction, time, idModal, interactionCallback) {
-		const addStateModal = createAddStateModal(this.selectedPlayer, this.players);
+		const addStateModal = createAddStateModal(this.selectedPlayer);
 		await interaction.showModal(addStateModal);
 
 		await interaction.awaitModalSubmit({
@@ -145,10 +145,7 @@ class InitiativeTracker {
 	// Method to take a Turn for a player
 	// This method finds the selected player and processes their turn.
 	async takeTurn() {
-		if (this.selectedPlayer) {
-			const selectedIndex = this.players.indexOf(this.selectedPlayer);
-			this.players[selectedIndex].passTurnFlag = false;
-		}
+		this.selectedPlayer.passTurnFlag = false;
 	}
 
 	// Method to remove a player from the initiative tracker
@@ -166,7 +163,7 @@ class PNJ {
 		this.passTurnFlag = false;
 		this.passTurnNumer;
 		this.healthState = '<:pnj_emoji:1336728073802092637>';
-		this.state;
+		this.state = '';
 		this.isPNJ = true;
 	}
 }
@@ -176,7 +173,7 @@ class PJ extends PNJ {
 		super(initiative, name);
 		this.id = id;
 		this.healthState = healthState;
-		this.state;
+		this.state = '';
 		this.isPNJ = false;
 		this.passTurnFlag = false;
 		this.passTurnNumer;
