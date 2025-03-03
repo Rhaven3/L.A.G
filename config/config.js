@@ -21,4 +21,5 @@ module.exports = {
 	defaultInitiative: -999,
 	defaultName: 'Inconnu au bataillon',
 	defaultState: ':x:',
+	defaultSheetTtrpgType: 'Arcadia',
 };
