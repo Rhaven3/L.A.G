@@ -14,7 +14,7 @@ const data = new SlashCommandBuilder()
 async function execute(interaction) {
 	await interaction.deferReply();
 
-	const initiativeTracker = new InitiativeTracker();
+	const initiativeTracker = new InitiativeTracker(interaction);
 
 
 	// récup fiche

@@ -13,7 +13,6 @@ module.exports = {
 	}),
 
 	// Initiative
-	playerDataRange: 'Etat!A1:P17',
 	buttonTimeMilliSecond: 3_600_000,
 	modalTimeMilliSecond: 3_600_000,
 	idSheetSpliter: ', ',

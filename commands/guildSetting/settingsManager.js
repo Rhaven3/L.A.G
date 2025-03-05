@@ -1,6 +1,6 @@
 const fs = require('fs');
 const { defaultSheetTtrpgType } = require('../../config/config');
-const settingsFile = '../../config/guildSettings.json';
+const settingsFile = './config/guildSettings.json';
 
 // Load settings from file
 function loadSettings() {
