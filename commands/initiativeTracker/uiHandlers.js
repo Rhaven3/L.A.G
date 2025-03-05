@@ -73,10 +73,10 @@ function createAddStateModal(selectedplayer) {
 }
 
 // Handle Player (PJ) Submission
-async function handleAddPJSubmit(interactionModal, getPlayersData_Callback, players, selectPlayerMenu) {
+async function handleAddPJSubmit(interactionModal, getPlayersData_Callback, typeSheet, players, selectPlayerMenu) {
 	try {
 		console.log(`${interactionModal.customId} was submitted!`);
-		const newPlayers = await getPlayersData_Callback(interactionModal.fields.getTextInputValue('idPJInput').split(idSheetSpliter));
+		const newPlayers = await getPlayersData_Callback(interactionModal.fields.getTextInputValue('idPJInput').split(idSheetSpliter), typeSheet);
 		newPlayers.forEach(player => {
 
 			// Check if the player already exists

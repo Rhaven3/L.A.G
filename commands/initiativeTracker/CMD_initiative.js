@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
-const { buttonTime, modalTime, idSheetSpliter } = require('../../config/config');
+const { buttonTimeMilliSecond, modalTimeMilliSecond, idSheetSpliter } = require('../../config/config');
 const { createTurnButtons, createSelectPlayerMenu, createAddPlayerMenu, createConfirmButton } = require('./uiComponents');
 const { InitiativeTracker } = require('./Class');
 
@@ -14,7 +14,7 @@ const data = new SlashCommandBuilder()
 async function execute(interaction) {
 	await interaction.deferReply();
 
-	const initiativeTracker = new InitiativeTracker();
+	const initiativeTracker = new InitiativeTracker(interaction);
 
 
 	// récup fiche
@@ -38,7 +38,7 @@ async function execute(interaction) {
 		turnOrderResponse,
 		'NextCollector',
 		'nextTurn',
-		buttonTime,
+		buttonTimeMilliSecond,
 		async (button) => {
 			await button.deferUpdate();
 			initiativeTracker.nextTurn();
@@ -51,7 +51,7 @@ async function execute(interaction) {
 		turnOrderResponse,
 		'PrecCollector',
 		'precTurn',
-		buttonTime,
+		buttonTimeMilliSecond,
 		async (button) => {
 			await button.deferUpdate();
 			initiativeTracker.previousTurn();
@@ -64,7 +64,7 @@ async function execute(interaction) {
 		turnOrderResponse,
 		'PassCollector',
 		'passTurn',
-		buttonTime,
+		buttonTimeMilliSecond,
 		async (button) => {
 			await button.deferUpdate();
 			initiativeTracker.passTurn();
@@ -79,8 +79,8 @@ async function execute(interaction) {
 		turnOrderResponse,
 		'addPJCollector',
 		'addPJ',
-		buttonTime,
-		(button) => initiativeTracker.addPJ(button, modalTime, 'addPJModal', async () => {
+		buttonTimeMilliSecond,
+		(button) => initiativeTracker.addPJ(button, modalTimeMilliSecond, 'addPJModal', async () => {
 			await updateTurnOderReply();
 		}),
 	);
@@ -90,8 +90,8 @@ async function execute(interaction) {
 		turnOrderResponse,
 		'addPNJCollector',
 		'addPNJ',
-		buttonTime,
-		(button) => initiativeTracker.addPNJ(button, modalTime, 'addPNJModal', async () => {
+		buttonTimeMilliSecond,
+		(button) => initiativeTracker.addPNJ(button, modalTimeMilliSecond, 'addPNJModal', async () => {
 			await updateTurnOderReply();
 		}),
 	);
@@ -103,7 +103,7 @@ async function execute(interaction) {
 		turnOrderResponse,
 		'selectPlayerCollector',
 		'selectPlayer',
-		buttonTime,
+		buttonTimeMilliSecond,
 		async (select) => {
 			await select.deferUpdate();
 			await initiativeTracker.selectPlayer(select.values[0]);
@@ -116,8 +116,8 @@ async function execute(interaction) {
 		turnOrderResponse,
 		'addStateCollector',
 		'addState',
-		buttonTime,
-		(button) => initiativeTracker.addState(button, modalTime, 'addStateModal', async () => {
+		buttonTimeMilliSecond,
+		(button) => initiativeTracker.addState(button, modalTimeMilliSecond, 'addStateModal', async () => {
 			await updateTurnOderReply();
 		}),
 	);
@@ -127,7 +127,7 @@ async function execute(interaction) {
 		turnOrderResponse,
 		'takenTurnCollector',
 		'takenTurn',
-		buttonTime,
+		buttonTimeMilliSecond,
 		async (button) => {
 			await button.deferUpdate();
 			initiativeTracker.takeTurn();
@@ -140,7 +140,7 @@ async function execute(interaction) {
 		turnOrderResponse,
 		'removePlayerCollector',
 		'removePlayer',
-		buttonTime,
+		buttonTimeMilliSecond,
 		async (button) => {
 			await button.deferUpdate();
 			// Confirm
@@ -157,7 +157,7 @@ async function execute(interaction) {
 				confirmResponse,
 				'yConfirmCollector',
 				'yConfirm',
-				buttonTime,
+				buttonTimeMilliSecond,
 				async (buttonConfirm) => {
 					await buttonConfirm.deferUpdate();
 					initiativeTracker.removePlayer();
@@ -171,7 +171,7 @@ async function execute(interaction) {
 				confirmResponse,
 				'nConfirmCollector',
 				'nConfirm',
-				buttonTime,
+				buttonTimeMilliSecond,
 				async (buttonConfirm) => {
 					await buttonConfirm.deferUpdate();
 					await buttonConfirm.deleteReply();

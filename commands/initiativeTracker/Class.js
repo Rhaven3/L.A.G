@@ -1,20 +1,22 @@
-const { playerDataRange, defaultInitiative, defaultName, defaultState } = require('../../config/config');
+const { defaultInitiative, defaultName, defaultState } = require('../../config/config');
 const { getPlayerData } = require('../../tools/googleSheets');
 const { nextTurn, precTurn, passTurn, calculateTurnOrder } = require('./turnManager');
 const { addPlayerSelectMenu, formatTurnOrderMessage } = require('./uiComponents');
+const { getGuildSettings } = require('../guildSetting/settingsManager');
 const { createAddPJModal, createAddPNJModal, handleAddPJSubmit, handleAddPNJSubmit, createAddStateModal, handleAddStateSubmit } = require('./uiHandlers');
 
 class InitiativeTracker {
-	constructor() {
+	constructor(interaction) {
 		this.players = [];
 		this.currentTurn = 0;
 		this.turnNumber = 1;
 		this.selectedPlayer = null;
+		this.typeSheet = getGuildSettings(interaction.guild.id).sheetTtrpgType;
 	}
 
 	// Method to add a player to the initiative tracker
 	async addPlayers(playersID) {
-		const newPlayers = await retrievePlayerData(playersID);
+		const newPlayers = await retrievePlayerData(playersID, this.typeSheet);
 		this.players.push(...newPlayers);
 		this.players.sort((a, b) => b.initiative - a.initiative);
 	}
@@ -101,7 +103,7 @@ class InitiativeTracker {
 			filter: interactionModal => interactionModal.customId === idModal,
 			time,
 		}).then(async interactionModal => {
-			await handleAddPJSubmit(interactionModal, retrievePlayerData, this.players, this.selectPlayerMenu.stringSelectMenu);
+			await handleAddPJSubmit(interactionModal, retrievePlayerData, this.typeSheet, this.players, this.selectPlayerMenu.stringSelectMenu);
 			await interactionModal.deferUpdate();
 			interactionCallback();
 		}).catch(err => console.log('no addPJmodal submit interaction was collected \n erreur: ' + err));
@@ -179,20 +181,50 @@ class PJ extends PNJ {
 		this.passTurnNumer;
 	}
 
-	async setPlayerData() {
+	async setPlayerData(typeSheet) {
+		let playerDataRange = '';
+		switch (typeSheet) {
+		case 'arcadia':
+			playerDataRange = 'Etat!A1:P17';
+			break;
+
+		case 'stardust':
+			playerDataRange = '\'Etat Général\'!A2:J24';
+			break;
+		default:
+			playerDataRange = 'Etat!A1:P17';
+			break;
+		}
+
 		const playerData = await getPlayerData(this.id, playerDataRange);
-		this.initiative = playerData[16][15] ?? defaultInitiative;
-		this.name = playerData[0][0] ?? defaultName;
-		this.healthState = playerData[2][0] ?? defaultState;
+		switch (typeSheet) {
+		case 'arcadia':
+			this.initiative = playerData[16][15] ?? defaultInitiative;
+			this.name = playerData[0][0] ?? defaultName;
+			this.healthState = playerData[2][0] ?? defaultState;
+			break;
+
+		case 'stardust':
+			this.initiative = playerData[22][9] ?? defaultInitiative;
+			this.name = playerData[0][0] ?? defaultName;
+			this.healthState = (playerData[1][6] && playerData[2][7]) ? `${playerData[1][6]} / ${playerData[2][7]}` : defaultState;
+			break;
+
+		default:
+			this.initiative = playerData[16][15] ?? defaultInitiative;
+			this.name = playerData[0][0] ?? defaultName;
+			this.healthState = playerData[2][0] ?? defaultState;
+			break;
+		}
 	}
 }
 
 
-async function retrievePlayerData(playersID) {
+async function retrievePlayerData(playersID, typeSheet) {
 	const playersPJ = [];
 	for (const id of playersID) {
 		const newPlayer = new PJ(id);
-		await newPlayer.setPlayerData();
+		await newPlayer.setPlayerData(typeSheet);
 		playersPJ.push(newPlayer);
 	}
 	return playersPJ;

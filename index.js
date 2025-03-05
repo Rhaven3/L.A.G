@@ -1,19 +1,8 @@
 const fs = require('node:fs');
 const path = require('node:path');
-const { Client, Collection, GatewayIntentBits } = require('discord.js');
+const { Collection } = require('discord.js');
 const { token } = require('./config/config.secret.json');
-
-// Create a new client instance
-const client = new Client({
-	intents: [
-		GatewayIntentBits.Guilds,
-		GatewayIntentBits.GuildMessages,
-		GatewayIntentBits.MessageContent,
-	],
-	allowedMentions: { parse: [] },
-	presence: { status: 'online' },
-});
-
+const { client } = require ('./config/config');
 
 // Command Handler
 client.commands = new Collection();
