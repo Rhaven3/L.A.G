@@ -21,4 +21,13 @@ module.exports = {
 	defaultName: 'Inconnu au bataillon',
 	defaultState: ':x:',
 	defaultSheetTtrpgType: 'Arcadia',
+
+	// Planning
+	defaulticonList: [
+		'', '', '', '', '', '', '',
+		'', '', '', '', '', '', '',
+		'', '', '', '', '', '', '',
+		'', '', '', '', '', '', '',
+	],
 };
+
