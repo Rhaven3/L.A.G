@@ -1,5 +1,4 @@
-const { numberTurnByPass } = require('../../config/config');
-
+import { numberTurnByPass } from '../../config/config.js';
 
 function nextTurn(players, currentTurn, turnNumber) {
 	if (currentTurn == players.length - 1) {
@@ -9,7 +8,6 @@ function nextTurn(players, currentTurn, turnNumber) {
 	return { currentTurn: currentTurn + 1, turnNumber };
 };
 
-
 function precTurn(players, currentTurn, turnNumber) {
 	if (currentTurn == 0) {
 		turnNumber--;
@@ -17,7 +15,6 @@ function precTurn(players, currentTurn, turnNumber) {
 	}
 	return { currentTurn: currentTurn - 1, turnNumber };
 };
-
 
 function passTurn(players, currentTurn, turnNumber) {
 	players[currentTurn].passTurnFlag = true;
@@ -51,10 +48,4 @@ async function calculateTurnOrder(players, currentTurn, turnNumber, refresh) {
 
 };
 
-
-module.exports = {
-	nextTurn,
-	precTurn,
-	passTurn,
-	calculateTurnOrder,
-};
+export { nextTurn, precTurn, passTurn, calculateTurnOrder };

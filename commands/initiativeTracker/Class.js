@@ -1,9 +1,9 @@
-const { defaultInitiative, defaultName, defaultState } = require('../../config/config');
-const { getPlayerData } = require('../../tools/googleSheets');
-const { nextTurn, precTurn, passTurn, calculateTurnOrder } = require('./turnManager');
-const { addPlayerSelectMenu, formatTurnOrderMessage } = require('./uiComponents');
-const { getGuildSettings } = require('../guildSetting/settingsManager');
-const { createAddPJModal, createAddPNJModal, handleAddPJSubmit, handleAddPNJSubmit, createAddStateModal, handleAddStateSubmit } = require('./uiHandlers');
+import { defaultInitiative, defaultName, defaultState } from '../../config/config.js';
+import { getPlayerData } from '../../tools/googleSheets.js';
+import { nextTurn, precTurn, passTurn, calculateTurnOrder } from './turnManager.js';
+import { addPlayerSelectMenu, formatTurnOrderMessage } from './uiComponents.js';
+import { getGuildSettings } from '../guildSetting/settingsManager.js';
+import { createAddPJModal, createAddPNJModal, handleAddPJSubmit, handleAddPNJSubmit, createAddStateModal, handleAddStateSubmit } from './uiHandlers.js';
 
 class InitiativeTracker {
 	constructor(interaction) {
@@ -231,8 +231,4 @@ async function retrievePlayerData(playersID, typeSheet) {
 };
 
 
-module.exports = {
-	InitiativeTracker,
-	PNJ,
-	PJ,
-};
+export { InitiativeTracker, PNJ, PJ };

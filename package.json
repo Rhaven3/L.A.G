@@ -1,5 +1,6 @@
 {
   "name": "mypackage",
+  "type": "module",
   "version": "1.2.2",
   "description": "test",
   "main": "index.js",

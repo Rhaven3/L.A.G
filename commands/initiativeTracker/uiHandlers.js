@@ -1,6 +1,6 @@
-const { ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder } = require('discord.js');
-const { addPlayerSelectMenu } = require('./uiComponents');
-const { idSheetSpliter } = require('../../config/config');
+import { ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder } from 'discord.js';
+import { addPlayerSelectMenu } from './uiComponents.js';
+import { idSheetSpliter } from '../../config/config.js';
 
 // Create a modal for adding a new player
 function createAddPJModal() {
@@ -139,12 +139,4 @@ function handleAddStateSubmit(interactionModal, players, selectedPlayer) {
 	}
 }
 
-
-module.exports = {
-	createAddPJModal,
-	createAddPNJModal,
-	createAddStateModal,
-	handleAddPJSubmit,
-	handleAddPNJSubmit,
-	handleAddStateSubmit,
-};
+export { createAddPJModal, createAddPNJModal, createAddStateModal, handleAddPJSubmit, handleAddPNJSubmit, handleAddStateSubmit };

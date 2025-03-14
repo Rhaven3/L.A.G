@@ -1,6 +1,6 @@
-import { dayjs } from 'dayjs';
-import 'dayjs/locale/fr';
-import { defaulticonList } from '../../config/config';
+import dayjs from 'dayjs';
+import 'dayjs/locale/fr.js'; // Updated to include the .js extension
+import { defaulticonList } from '../../config/config.js';
 
 dayjs.locale('fr');
 

@@ -1,33 +1,28 @@
-const { Client, GatewayIntentBits } = require('discord.js');
+import { Client, GatewayIntentBits } from 'discord.js';
 
-module.exports = {
-	// Instance Client
-	client: new Client({
-		intents: [
-			GatewayIntentBits.Guilds,
-			GatewayIntentBits.GuildMessages,
-			GatewayIntentBits.MessageContent,
-		],
-		allowedMentions: { parse: [] },
-		presence: { status: 'online' },
-	}),
+export const client = new Client({
+    intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.MessageContent,
+    ],
+    allowedMentions: { parse: [] },
+    presence: { status: 'online' },
+});
 
-	// Initiative
-	buttonTimeMilliSecond: 3_600_000,
-	modalTimeMilliSecond: 3_600_000,
-	idSheetSpliter: ', ',
-	numberTurnByPass: 1,
-	defaultInitiative: -999,
-	defaultName: 'Inconnu au bataillon',
-	defaultState: ':x:',
-	defaultSheetTtrpgType: 'Arcadia',
+export const buttonTimeMilliSecond = 3_600_000;
+export const modalTimeMilliSecond = 3_600_000;
+export const idSheetSpliter = ', ';
+export const numberTurnByPass = 1;
+export const defaultInitiative = -999;
+export const defaultName = 'Inconnu au bataillon';
+export const defaultState = ':x:';
+export const defaultSheetTtrpgType = 'Arcadia';
 
-	// Planning
-	defaulticonList: [
-		'', '', '', '', '', '', '',
-		'', '', '', '', '', '', '',
-		'', '', '', '', '', '', '',
-		'', '', '', '', '', '', '',
-	],
-};
+export const defaulticonList = [
+    '', '', '', '', '', '', '',
+    '', '', '', '', '', '', '',
+    '', '', '', '', '', '', '',
+    '', '', '', '', '', '', '',
+];
 

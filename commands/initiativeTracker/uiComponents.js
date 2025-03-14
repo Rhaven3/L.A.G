@@ -1,5 +1,4 @@
-const { ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder, StringSelectMenuOptionBuilder } = require('discord.js');
-
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder, StringSelectMenuOptionBuilder } from 'discord.js';
 
 function createTurnButtons() {
 	return new ActionRowBuilder().addComponents(
@@ -111,11 +110,4 @@ function formatTurnOrderMessage(players, turnNumber) {
 	return turnOrderMessage;
 }
 
-module.exports = {
-	createTurnButtons,
-	createSelectPlayerMenu,
-	createAddPlayerMenu,
-	addPlayerSelectMenu,
-	formatTurnOrderMessage,
-	createConfirmButton,
-};
+export { createTurnButtons, createSelectPlayerMenu, createAddPlayerMenu, addPlayerSelectMenu, formatTurnOrderMessage, createConfirmButton };
