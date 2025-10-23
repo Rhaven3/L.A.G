@@ -13,7 +13,7 @@ This bot is designed to help Dungeon Masters and Players track initiative in Tab
 
 ### 2️⃣ Clone the Repository
 ```
-git clone https://github.com/yourusername/L.A.G.git
+git clone https://github.com/Rhaven3/L.A.G.git
 cd L.A.G
 ```
 <!-- modifier le lien une fois renomé -->
