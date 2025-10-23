@@ -13,8 +13,8 @@ This bot is designed to help Dungeon Masters and Players track initiative in Tab
 
 ### 2️⃣ Clone the Repository
 ```
-git clone https://github.com/yourusername/TTRPG-Initiative-Tracker.git
-cd TTRPG-Initiative-Tracker
+git clone https://github.com/yourusername/L.A.G.git
+cd L.A.G
 ```
 <!-- modifier le lien une fois renomé -->
 ### 3️⃣ Install Dependencies 
