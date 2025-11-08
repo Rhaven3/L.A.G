@@ -28,6 +28,8 @@ npm install
     "token": "YOUR_DISCORD_BOT_TOKEN",
 }
 ```
+- Move your ``API-KEY-XXXXXX.json`` from your Google Cloud Project in ``config/``
+
 5️⃣ Run the Bot
 ```
 npx nodemon
