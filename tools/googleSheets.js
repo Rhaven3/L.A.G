@@ -7,7 +7,7 @@ const { google } = require('googleapis');
 
 async function getGoogleAuth() {
 	const auth = new google.auth.GoogleAuth({
-		keyFile: 'project-it-credentials.json',
+		keyFile: 'config/project-it-credentials.json',
 		scopes: 'https://www.googleapis.com/auth/spreadsheets',
 	});
 	return google.sheets({ version: 'v4', auth: await auth.getClient() });
